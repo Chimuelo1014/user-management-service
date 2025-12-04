@@ -1,0 +1,577 @@
+2025-12-03T18:23:53.169-05:00  INFO 7616 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : Starting UserManagementServiceApplication using Java 21.0.8 with PID 7616 (C:\Users\USUARIO\Documents\RIWI\proyecto_ruta_avanzada\sentinel\project-root-java\user-management-service\target\classes started by USUARIO in C:\Users\USUARIO\Documents\RIWI\proyecto_ruta_avanzada\sentinel\project-root-java\user-management-service)
+2025-12-03T18:23:53.171-05:00  INFO 7616 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : No active profile set, falling back to 1 default profile: "default"
+2025-12-03T18:23:54.177-05:00  INFO 7616 --- [user-management-service] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-03T18:23:54.248-05:00  INFO 7616 --- [user-management-service] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 61 ms. Found 3 JPA repository interfaces.
+2025-12-03T18:23:54.450-05:00  INFO 7616 --- [user-management-service] [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=ef802f64-1f6e-3b51-9275-e05ab1fadafa
+2025-12-03T18:23:54.865-05:00  INFO 7616 --- [user-management-service] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8083 (http)
+2025-12-03T18:23:54.880-05:00  INFO 7616 --- [user-management-service] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-12-03T18:23:54.880-05:00  INFO 7616 --- [user-management-service] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.49]
+2025-12-03T18:23:54.969-05:00  INFO 7616 --- [user-management-service] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-12-03T18:23:54.969-05:00  INFO 7616 --- [user-management-service] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1747 ms
+2025-12-03T18:23:55.226-05:00  INFO 7616 --- [user-management-service] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-03T18:23:55.259-05:00  INFO 7616 --- [user-management-service] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.36.Final
+2025-12-03T18:23:55.294-05:00  INFO 7616 --- [user-management-service] [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-12-03T18:23:55.553-05:00  INFO 7616 --- [user-management-service] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-03T18:23:55.571-05:00  INFO 7616 --- [user-management-service] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-12-03T18:23:55.727-05:00  INFO 7616 --- [user-management-service] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@453a30f8
+2025-12-03T18:23:55.729-05:00  INFO 7616 --- [user-management-service] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-12-03T18:23:55.770-05:00  WARN 7616 --- [user-management-service] [main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-12-03T18:23:55.784-05:00  INFO 7616 --- [user-management-service] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 18.1
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-12-03T18:23:56.400-05:00  INFO 7616 --- [user-management-service] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-12-03T18:23:56.445-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create table invitations (
+        id uuid not null,
+        accepted_at timestamp(6),
+        created_at timestamp(6),
+        email varchar(255) not null,
+        expires_at timestamp(6) not null,
+        invited_by uuid not null,
+        inviter_email varchar(255),
+        resource_id uuid not null,
+        resource_name varchar(255),
+        role varchar(20) not null,
+        status varchar(20) not null check (status in ('PENDING','ACCEPTED','EXPIRED','REVOKED')),
+        token varchar(64) not null,
+        type varchar(20) not null check (type in ('TENANT','PROJECT')),
+        primary key (id)
+    )
+2025-12-03T18:23:56.457-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create table project_members (
+        id uuid not null,
+        added_by uuid,
+        created_at timestamp(6),
+        joined_at timestamp(6) not null,
+        project_id uuid not null,
+        role varchar(20) not null check (role in ('PROJECT_ADMIN','PROJECT_MEMBER','PROJECT_VIEWER')),
+        tenant_id uuid not null,
+        updated_at timestamp(6),
+        user_id uuid not null,
+        primary key (id)
+    )
+2025-12-03T18:23:56.461-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create table tenant_members (
+        id uuid not null,
+        created_at timestamp(6),
+        invited_by uuid,
+        joined_at timestamp(6) not null,
+        role varchar(20) not null check (role in ('TENANT_ADMIN','TENANT_USER')),
+        tenant_id uuid not null,
+        updated_at timestamp(6),
+        user_id uuid not null,
+        primary key (id)
+    )
+2025-12-03T18:23:56.464-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create index idx_invitations_email 
+       on invitations (email)
+2025-12-03T18:23:56.466-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create index idx_invitations_token 
+       on invitations (token)
+2025-12-03T18:23:56.467-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create index idx_invitations_status 
+       on invitations (status)
+2025-12-03T18:23:56.469-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create index idx_invitations_resource_id 
+       on invitations (resource_id)
+2025-12-03T18:23:56.471-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create index idx_invitations_type 
+       on invitations (type)
+2025-12-03T18:23:56.472-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create index idx_invitations_expires_at 
+       on invitations (expires_at)
+2025-12-03T18:23:56.475-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    alter table if exists invitations 
+       drop constraint if exists UKt4i6esv44p6yi7cxq277vlo3i
+2025-12-03T18:23:56.478-05:00  WARN 7616 --- [user-management-service] [main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2025-12-03T18:23:56.478-05:00  WARN 7616 --- [user-management-service] [main] o.h.engine.jdbc.spi.SqlExceptionHelper   : no existe la restricción «ukt4i6esv44p6yi7cxq277vlo3i» en la relación «invitations», omitiendo
+2025-12-03T18:23:56.478-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    alter table if exists invitations 
+       add constraint UKt4i6esv44p6yi7cxq277vlo3i unique (token)
+2025-12-03T18:23:56.480-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create index idx_project_members_project_id 
+       on project_members (project_id)
+2025-12-03T18:23:56.482-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create index idx_project_members_user_id 
+       on project_members (user_id)
+2025-12-03T18:23:56.484-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create index idx_project_members_tenant_id 
+       on project_members (tenant_id)
+2025-12-03T18:23:56.485-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create index idx_project_members_role 
+       on project_members (role)
+2025-12-03T18:23:56.487-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    alter table if exists project_members 
+       drop constraint if exists UKaydweb1re2g5786xaugww4u0
+2025-12-03T18:23:56.488-05:00  WARN 7616 --- [user-management-service] [main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2025-12-03T18:23:56.488-05:00  WARN 7616 --- [user-management-service] [main] o.h.engine.jdbc.spi.SqlExceptionHelper   : no existe la restricción «ukaydweb1re2g5786xaugww4u0» en la relación «project_members», omitiendo
+2025-12-03T18:23:56.488-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    alter table if exists project_members 
+       add constraint UKaydweb1re2g5786xaugww4u0 unique (project_id, user_id)
+2025-12-03T18:23:56.490-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create index idx_tenant_members_tenant_id 
+       on tenant_members (tenant_id)
+2025-12-03T18:23:56.492-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create index idx_tenant_members_user_id 
+       on tenant_members (user_id)
+2025-12-03T18:23:56.493-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    create index idx_tenant_members_role 
+       on tenant_members (role)
+2025-12-03T18:23:56.495-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    alter table if exists tenant_members 
+       drop constraint if exists UK27wct6pokq0ddegorg4jpbiik
+2025-12-03T18:23:56.496-05:00  WARN 7616 --- [user-management-service] [main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2025-12-03T18:23:56.496-05:00  WARN 7616 --- [user-management-service] [main] o.h.engine.jdbc.spi.SqlExceptionHelper   : no existe la restricción «uk27wct6pokq0ddegorg4jpbiik» en la relación «tenant_members», omitiendo
+2025-12-03T18:23:56.496-05:00 DEBUG 7616 --- [user-management-service] [main] org.hibernate.SQL                        : 
+    alter table if exists tenant_members 
+       add constraint UK27wct6pokq0ddegorg4jpbiik unique (tenant_id, user_id)
+2025-12-03T18:23:56.499-05:00  INFO 7616 --- [user-management-service] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-03T18:23:56.747-05:00  INFO 7616 --- [user-management-service] [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-12-03T18:23:57.404-05:00  WARN 7616 --- [user-management-service] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-03T18:23:57.434-05:00  WARN 7616 --- [user-management-service] [main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 268781cb-9b32-4b45-8327-cbe726a8127c
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-12-03T18:23:57.442-05:00  INFO 7616 --- [user-management-service] [main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2025-12-03T18:23:57.736-05:00  INFO 7616 --- [user-management-service] [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2025-12-03T18:23:58.064-05:00 DEBUG 7616 --- [user-management-service] [main] .a.r.l.a.MessagingMessageListenerAdapter : Inferred argument type for public void com.sentinel.user_management_service.events.listeners.ProjectCreatedListener.handleProjectCreated(java.util.Map) is java.util.Map<java.lang.String, java.lang.Object>
+2025-12-03T18:23:58.076-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : No global properties bean
+2025-12-03T18:23:58.077-05:00 DEBUG 7616 --- [user-management-service] [main] .a.r.l.a.MessagingMessageListenerAdapter : Inferred argument type for public void com.sentinel.user_management_service.events.listeners.TenantCreatedListener.handleTenantCreated(java.util.Map) is java.util.Map<java.lang.String, java.lang.Object>
+2025-12-03T18:23:58.078-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : No global properties bean
+2025-12-03T18:23:58.129-05:00  INFO 7616 --- [user-management-service] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8083 (http) with context path '/'
+2025-12-03T18:23:58.134-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : Starting Rabbit listener container.
+2025-12-03T18:23:58.138-05:00  INFO 7616 --- [user-management-service] [main] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2025-12-03T18:23:58.168-05:00  INFO 7616 --- [user-management-service] [main] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#cea6297:0/SimpleConnection@6bddd4ce [delegate=amqp://guest@127.0.0.1:5672/, localPort=51782]
+2025-12-03T18:23:58.171-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Initializing declarations
+2025-12-03T18:23:58.179-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.a.r.c.CachingConnectionFactory       : Creating cached Rabbit Channel from AMQChannel(amqp://guest@127.0.0.1:5672/,1)
+2025-12-03T18:23:58.185-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitTemplate      : Executing callback RabbitAdmin$$Lambda/0x00000198bebda8a0 on RabbitMQ Channel: Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@704e27f9 Shared Rabbit Connection: SimpleConnection@6bddd4ce [delegate=amqp://guest@127.0.0.1:5672/, localPort=51782]
+2025-12-03T18:23:58.185-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Exchange 'user-mgmt-exchange'
+2025-12-03T18:23:58.231-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Exchange 'tenant-exchange'
+2025-12-03T18:23:58.235-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Exchange 'project-exchange'
+2025-12-03T18:23:58.239-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.user.invited.queue'
+2025-12-03T18:23:58.246-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.invitation.accepted.queue'
+2025-12-03T18:23:58.257-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.access.revoked.queue'
+2025-12-03T18:23:58.262-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.tenant.created.queue'
+2025-12-03T18:23:58.268-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.project.created.queue'
+2025-12-03T18:23:58.275-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.user.invited.queue (QUEUE)] to exchange [user-mgmt-exchange] with routing key [user.invited]
+2025-12-03T18:23:58.280-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.invitation.accepted.queue (QUEUE)] to exchange [user-mgmt-exchange] with routing key [user.invitation.accepted]
+2025-12-03T18:23:58.284-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.access.revoked.queue (QUEUE)] to exchange [user-mgmt-exchange] with routing key [user.access.revoked]
+2025-12-03T18:23:58.287-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.tenant.created.queue (QUEUE)] to exchange [tenant-exchange] with routing key [tenant.created]
+2025-12-03T18:23:58.291-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.project.created.queue (QUEUE)] to exchange [project-exchange] with routing key [project.created]
+2025-12-03T18:23:58.296-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Declarations finished
+2025-12-03T18:23:58.300-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-1] o.s.amqp.rabbit.core.RabbitTemplate      : Executing callback RabbitAdmin$$Lambda/0x00000198bebe6f20 on RabbitMQ Channel: Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@704e27f9 Shared Rabbit Connection: SimpleConnection@6bddd4ce [delegate=amqp://guest@127.0.0.1:5672/, localPort=51782]
+2025-12-03T18:23:58.304-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Starting consumer Consumer@1069cbf2: tags=[[]], channel=null, acknowledgeMode=AUTO local queue size=0
+2025-12-03T18:23:58.312-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Started on queue 'user_mgmt.project.created.queue' with tag amq.ctag-rWLzBJ3uY1bGB85rOkNrHA: Consumer@1069cbf2: tags=[[]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@704e27f9 Shared Rabbit Connection: SimpleConnection@6bddd4ce [delegate=amqp://guest@127.0.0.1:5672/, localPort=51782], acknowledgeMode=AUTO local queue size=0
+2025-12-03T18:23:58.312-05:00 DEBUG 7616 --- [user-management-service] [pool-2-thread-3] o.s.a.r.listener.BlockingQueueConsumer   : ConsumeOK: Consumer@1069cbf2: tags=[[amq.ctag-rWLzBJ3uY1bGB85rOkNrHA]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@704e27f9 Shared Rabbit Connection: SimpleConnection@6bddd4ce [delegate=amqp://guest@127.0.0.1:5672/, localPort=51782], acknowledgeMode=AUTO local queue size=0
+2025-12-03T18:23:58.312-05:00 DEBUG 7616 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : Starting Rabbit listener container.
+2025-12-03T18:23:58.315-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.c.CachingConnectionFactory       : Creating cached Rabbit Channel from AMQChannel(amqp://guest@127.0.0.1:5672/,2)
+2025-12-03T18:23:58.315-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.amqp.rabbit.core.RabbitTemplate      : Executing callback RabbitAdmin$$Lambda/0x00000198bebe6f20 on RabbitMQ Channel: Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@704e27f9 Shared Rabbit Connection: SimpleConnection@6bddd4ce [delegate=amqp://guest@127.0.0.1:5672/, localPort=51782]
+2025-12-03T18:23:58.316-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.listener.BlockingQueueConsumer   : Starting consumer Consumer@6671ec3b: tags=[[]], channel=null, acknowledgeMode=AUTO local queue size=0
+2025-12-03T18:23:58.319-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.listener.BlockingQueueConsumer   : Started on queue 'user_mgmt.tenant.created.queue' with tag amq.ctag-1gMK2ZLAnAyq3XXjONyQXQ: Consumer@6671ec3b: tags=[[]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@704e27f9 Shared Rabbit Connection: SimpleConnection@6bddd4ce [delegate=amqp://guest@127.0.0.1:5672/, localPort=51782], acknowledgeMode=AUTO local queue size=0
+2025-12-03T18:23:58.319-05:00 DEBUG 7616 --- [user-management-service] [pool-2-thread-4] o.s.a.r.listener.BlockingQueueConsumer   : ConsumeOK: Consumer@6671ec3b: tags=[[amq.ctag-1gMK2ZLAnAyq3XXjONyQXQ]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@704e27f9 Shared Rabbit Connection: SimpleConnection@6bddd4ce [delegate=amqp://guest@127.0.0.1:5672/, localPort=51782], acknowledgeMode=AUTO local queue size=0
+2025-12-03T18:23:58.333-05:00  INFO 7616 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : Started UserManagementServiceApplication in 5.56 seconds (process running for 6.068)
+2025-12-03T18:35:09.805-05:00 DEBUG 7616 --- [user-management-service] [pool-2-thread-5] o.s.a.r.listener.BlockingQueueConsumer   : Storing delivery for consumerTag: 'amq.ctag-1gMK2ZLAnAyq3XXjONyQXQ' with deliveryTag: '1' in Consumer@6671ec3b: tags=[[amq.ctag-1gMK2ZLAnAyq3XXjONyQXQ]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@704e27f9 Shared Rabbit Connection: SimpleConnection@6bddd4ce [delegate=amqp://guest@127.0.0.1:5672/, localPort=51782], acknowledgeMode=AUTO local queue size=0
+2025-12-03T18:35:09.813-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.listener.BlockingQueueConsumer   : Received message: (Body:'[B@3c01a59d(byte[434])' MessageProperties [headers={__ContentTypeId__=java.lang.Object, __KeyTypeId__=java.lang.Object, __TypeId__=java.util.HashMap}, contentType=application/json, contentEncoding=UTF-8, contentLength=0, receivedDeliveryMode=PERSISTENT, priority=0, redelivered=false, receivedExchange=tenant-exchange, receivedRoutingKey=tenant.created, deliveryTag=1, consumerTag=amq.ctag-1gMK2ZLAnAyq3XXjONyQXQ, consumerQueue=user_mgmt.tenant.created.queue])
+2025-12-03T18:35:09.842-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] .a.r.l.a.MessagingMessageListenerAdapter : Processing [GenericMessage [payload={eventId=c226b6be-b1c4-4ef4-bd8d-09ef03078d75, metadata={correlationId=5548814f-06b8-4b17-af80-ee4a16def11b, source=tenant-service}, data={tenantId=12ec52d9-2dfa-45d9-844b-b75d21b9df78, name=test2's Workspace, type=PERSONAL, userId=88cf5082-130b-482e-ba8c-069d2acd9493, plan=FREE, slug=test2s-workspace-88cf5082}, eventType=tenant.created, version=1.0, timestamp=2025-12-03T18:35:09.788431900}, headers={amqp_receivedDeliveryMode=PERSISTENT, amqp_receivedExchange=tenant-exchange, amqp_deliveryTag=1, amqp_consumerQueue=user_mgmt.tenant.created.queue, amqp_redelivered=false, __ContentTypeId__=java.lang.Object, amqp_receivedRoutingKey=tenant.created, amqp_contentEncoding=UTF-8, __KeyTypeId__=java.lang.Object, amqp_retryCount=0, id=10915f66-169e-dc78-39db-36f5dc055b2d, amqp_consumerTag=amq.ctag-1gMK2ZLAnAyq3XXjONyQXQ, amqp_lastInBatch=false, contentType=application/json, __TypeId__=java.util.HashMap, timestamp=1764804909842}]]
+2025-12-03T18:35:09.843-05:00  INFO 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.e.listeners.TenantCreatedListener  : Received tenant.created event: {eventId=c226b6be-b1c4-4ef4-bd8d-09ef03078d75, metadata={correlationId=5548814f-06b8-4b17-af80-ee4a16def11b, source=tenant-service}, data={tenantId=12ec52d9-2dfa-45d9-844b-b75d21b9df78, name=test2's Workspace, type=PERSONAL, userId=88cf5082-130b-482e-ba8c-069d2acd9493, plan=FREE, slug=test2s-workspace-88cf5082}, eventType=tenant.created, version=1.0, timestamp=2025-12-03T18:35:09.788431900}
+2025-12-03T18:35:09.844-05:00  INFO 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.e.listeners.TenantCreatedListener  : Adding owner 88cf5082-130b-482e-ba8c-069d2acd9493 as TENANT_ADMIN to tenant 12ec52d9-2dfa-45d9-844b-b75d21b9df78
+2025-12-03T18:35:09.851-05:00  INFO 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.s.impl.TenantMemberServiceImpl     : Adding member 88cf5082-130b-482e-ba8c-069d2acd9493 to tenant 12ec52d9-2dfa-45d9-844b-b75d21b9df78 with role TENANT_ADMIN
+2025-12-03T18:35:09.908-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] org.hibernate.SQL                        : 
+    select
+        tme1_0.id 
+    from
+        tenant_members tme1_0 
+    where
+        tme1_0.tenant_id=? 
+        and tme1_0.user_id=? 
+    fetch
+        first ? rows only
+2025-12-03T18:35:09.942-05:00  INFO 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.s.impl.TenantMemberServiceImpl     : Member added successfully: 5c97884b-c2a5-4ca3-ac5e-faec4f692cea
+2025-12-03T18:35:09.955-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] org.hibernate.SQL                        : 
+    insert 
+    into
+        tenant_members
+        (created_at, invited_by, joined_at, role, tenant_id, updated_at, user_id, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?)
+2025-12-03T18:35:09.961-05:00  INFO 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.e.listeners.TenantCreatedListener  : Owner successfully added as TENANT_ADMIN
+2025-12-03T18:45:55.678-05:00 DEBUG 7616 --- [user-management-service] [pool-2-thread-6] o.s.a.r.listener.BlockingQueueConsumer   : Storing delivery for consumerTag: 'amq.ctag-1gMK2ZLAnAyq3XXjONyQXQ' with deliveryTag: '2' in Consumer@6671ec3b: tags=[[amq.ctag-1gMK2ZLAnAyq3XXjONyQXQ]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@704e27f9 Shared Rabbit Connection: SimpleConnection@6bddd4ce [delegate=amqp://guest@127.0.0.1:5672/, localPort=51782], acknowledgeMode=AUTO local queue size=0
+2025-12-03T18:45:55.679-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.listener.BlockingQueueConsumer   : Received message: (Body:'[B@30af0b3a(byte[434])' MessageProperties [headers={__ContentTypeId__=java.lang.Object, __KeyTypeId__=java.lang.Object, __TypeId__=java.util.HashMap}, contentType=application/json, contentEncoding=UTF-8, contentLength=0, receivedDeliveryMode=PERSISTENT, priority=0, redelivered=false, receivedExchange=tenant-exchange, receivedRoutingKey=tenant.created, deliveryTag=2, consumerTag=amq.ctag-1gMK2ZLAnAyq3XXjONyQXQ, consumerQueue=user_mgmt.tenant.created.queue])
+2025-12-03T18:45:55.679-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] .a.r.l.a.MessagingMessageListenerAdapter : Processing [GenericMessage [payload={eventId=cd2955f2-e70a-4e3a-a1c2-bb280f76fa1d, metadata={correlationId=cee30581-1c02-4252-81da-f1ac415c7a3a, source=tenant-service}, data={tenantId=e88e2caf-a9bd-40f7-b3b4-d3bae9841326, name=admin's Workspace, type=PERSONAL, userId=365a4262-772c-4ced-bc1d-5cd36305f776, plan=FREE, slug=admins-workspace-365a4262}, eventType=tenant.created, version=1.0, timestamp=2025-12-03T18:45:55.675926900}, headers={amqp_receivedDeliveryMode=PERSISTENT, amqp_receivedExchange=tenant-exchange, amqp_deliveryTag=2, amqp_consumerQueue=user_mgmt.tenant.created.queue, amqp_redelivered=false, __ContentTypeId__=java.lang.Object, amqp_receivedRoutingKey=tenant.created, amqp_contentEncoding=UTF-8, __KeyTypeId__=java.lang.Object, amqp_retryCount=0, id=817bbe80-2ca4-0aeb-2a3d-600ee6eaa78e, amqp_consumerTag=amq.ctag-1gMK2ZLAnAyq3XXjONyQXQ, amqp_lastInBatch=false, contentType=application/json, __TypeId__=java.util.HashMap, timestamp=1764805555679}]]
+2025-12-03T18:45:55.680-05:00  INFO 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.e.listeners.TenantCreatedListener  : Received tenant.created event: {eventId=cd2955f2-e70a-4e3a-a1c2-bb280f76fa1d, metadata={correlationId=cee30581-1c02-4252-81da-f1ac415c7a3a, source=tenant-service}, data={tenantId=e88e2caf-a9bd-40f7-b3b4-d3bae9841326, name=admin's Workspace, type=PERSONAL, userId=365a4262-772c-4ced-bc1d-5cd36305f776, plan=FREE, slug=admins-workspace-365a4262}, eventType=tenant.created, version=1.0, timestamp=2025-12-03T18:45:55.675926900}
+2025-12-03T18:45:55.681-05:00  INFO 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.e.listeners.TenantCreatedListener  : Adding owner 365a4262-772c-4ced-bc1d-5cd36305f776 as TENANT_ADMIN to tenant e88e2caf-a9bd-40f7-b3b4-d3bae9841326
+2025-12-03T18:45:55.682-05:00  INFO 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.s.impl.TenantMemberServiceImpl     : Adding member 365a4262-772c-4ced-bc1d-5cd36305f776 to tenant e88e2caf-a9bd-40f7-b3b4-d3bae9841326 with role TENANT_ADMIN
+2025-12-03T18:45:55.683-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] org.hibernate.SQL                        : 
+    select
+        tme1_0.id 
+    from
+        tenant_members tme1_0 
+    where
+        tme1_0.tenant_id=? 
+        and tme1_0.user_id=? 
+    fetch
+        first ? rows only
+2025-12-03T18:45:55.685-05:00  INFO 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.s.impl.TenantMemberServiceImpl     : Member added successfully: ff2c7d50-6b8e-4197-9efe-45223fe40ac4
+2025-12-03T18:45:55.685-05:00 DEBUG 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] org.hibernate.SQL                        : 
+    insert 
+    into
+        tenant_members
+        (created_at, invited_by, joined_at, role, tenant_id, updated_at, user_id, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?)
+2025-12-03T18:45:55.688-05:00  INFO 7616 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.e.listeners.TenantCreatedListener  : Owner successfully added as TENANT_ADMIN
+2025-12-03T18:54:09.983-05:00  INFO 7616 --- [user-management-service] [http-nio-8083-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-12-03T18:54:09.983-05:00  INFO 7616 --- [user-management-service] [http-nio-8083-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-12-03T18:54:09.985-05:00  INFO 7616 --- [user-management-service] [http-nio-8083-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2025-12-03T18:54:10.044-05:00 DEBUG 7616 --- [user-management-service] [http-nio-8083-exec-2] org.hibernate.SQL                        : 
+    select
+        tme1_0.id,
+        tme1_0.created_at,
+        tme1_0.invited_by,
+        tme1_0.joined_at,
+        tme1_0.role,
+        tme1_0.tenant_id,
+        tme1_0.updated_at,
+        tme1_0.user_id 
+    from
+        tenant_members tme1_0 
+    where
+        tme1_0.tenant_id=?
+2025-12-03T18:54:29.885-05:00 DEBUG 7616 --- [user-management-service] [http-nio-8083-exec-4] org.hibernate.SQL                        : 
+    select
+        tme1_0.id,
+        tme1_0.created_at,
+        tme1_0.invited_by,
+        tme1_0.joined_at,
+        tme1_0.role,
+        tme1_0.tenant_id,
+        tme1_0.updated_at,
+        tme1_0.user_id 
+    from
+        tenant_members tme1_0 
+    where
+        tme1_0.tenant_id=?
+2025-12-03T18:54:33.735-05:00 DEBUG 7616 --- [user-management-service] [http-nio-8083-exec-3] org.hibernate.SQL                        : 
+    select
+        tme1_0.id,
+        tme1_0.created_at,
+        tme1_0.invited_by,
+        tme1_0.joined_at,
+        tme1_0.role,
+        tme1_0.tenant_id,
+        tme1_0.updated_at,
+        tme1_0.user_id 
+    from
+        tenant_members tme1_0 
+    where
+        tme1_0.tenant_id=?
+2025-12-03T19:23:07.017-05:00  INFO 11612 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : Starting UserManagementServiceApplication using Java 21.0.8 with PID 11612 (C:\Users\USUARIO\Documents\RIWI\proyecto_ruta_avanzada\sentinel\project-root-java\user-management-service\target\classes started by USUARIO in C:\Users\USUARIO\Documents\RIWI\proyecto_ruta_avanzada\sentinel\project-root-java\user-management-service)
+2025-12-03T19:23:07.020-05:00  INFO 11612 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : No active profile set, falling back to 1 default profile: "default"
+2025-12-03T19:23:07.992-05:00  INFO 11612 --- [user-management-service] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-03T19:23:08.062-05:00  INFO 11612 --- [user-management-service] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 61 ms. Found 3 JPA repository interfaces.
+2025-12-03T19:23:08.322-05:00  INFO 11612 --- [user-management-service] [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=ef802f64-1f6e-3b51-9275-e05ab1fadafa
+2025-12-03T19:23:08.826-05:00  INFO 11612 --- [user-management-service] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8083 (http)
+2025-12-03T19:23:08.844-05:00  INFO 11612 --- [user-management-service] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-12-03T19:23:08.844-05:00  INFO 11612 --- [user-management-service] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.49]
+2025-12-03T19:23:08.919-05:00  INFO 11612 --- [user-management-service] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-12-03T19:23:08.920-05:00  INFO 11612 --- [user-management-service] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1846 ms
+2025-12-03T19:23:09.179-05:00  INFO 11612 --- [user-management-service] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-03T19:23:09.228-05:00  INFO 11612 --- [user-management-service] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.36.Final
+2025-12-03T19:23:09.266-05:00  INFO 11612 --- [user-management-service] [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-12-03T19:23:09.522-05:00  INFO 11612 --- [user-management-service] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-03T19:23:09.550-05:00  INFO 11612 --- [user-management-service] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-12-03T19:23:09.714-05:00  INFO 11612 --- [user-management-service] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@24b8a393
+2025-12-03T19:23:09.716-05:00  INFO 11612 --- [user-management-service] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-12-03T19:23:09.754-05:00  WARN 11612 --- [user-management-service] [main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-12-03T19:23:09.773-05:00  INFO 11612 --- [user-management-service] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 18.1
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-12-03T19:23:10.441-05:00  INFO 11612 --- [user-management-service] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-12-03T19:23:10.490-05:00  INFO 11612 --- [user-management-service] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-03T19:23:10.731-05:00  INFO 11612 --- [user-management-service] [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-12-03T19:23:11.449-05:00  WARN 11612 --- [user-management-service] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-03T19:23:11.487-05:00  WARN 11612 --- [user-management-service] [main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 89d15517-54b7-4a03-a1ef-9408e0fe8e17
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-12-03T19:23:11.496-05:00  INFO 11612 --- [user-management-service] [main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2025-12-03T19:23:11.847-05:00  INFO 11612 --- [user-management-service] [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2025-12-03T19:23:12.218-05:00 DEBUG 11612 --- [user-management-service] [main] .a.r.l.a.MessagingMessageListenerAdapter : Inferred argument type for public void com.sentinel.user_management_service.events.listeners.ProjectCreatedListener.handleProjectCreated(java.util.Map) is java.util.Map<java.lang.String, java.lang.Object>
+2025-12-03T19:23:12.231-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : No global properties bean
+2025-12-03T19:23:12.232-05:00 DEBUG 11612 --- [user-management-service] [main] .a.r.l.a.MessagingMessageListenerAdapter : Inferred argument type for public void com.sentinel.user_management_service.events.listeners.TenantCreatedListener.handleTenantCreated(java.util.Map) is java.util.Map<java.lang.String, java.lang.Object>
+2025-12-03T19:23:12.232-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : No global properties bean
+2025-12-03T19:23:12.287-05:00  INFO 11612 --- [user-management-service] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8083 (http) with context path '/'
+2025-12-03T19:23:12.294-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : Starting Rabbit listener container.
+2025-12-03T19:23:12.297-05:00  INFO 11612 --- [user-management-service] [main] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2025-12-03T19:23:12.340-05:00  INFO 11612 --- [user-management-service] [main] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#54353bb1:0/SimpleConnection@4435c9b9 [delegate=amqp://guest@127.0.0.1:5672/, localPort=49489]
+2025-12-03T19:23:12.343-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Initializing declarations
+2025-12-03T19:23:12.350-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.a.r.c.CachingConnectionFactory       : Creating cached Rabbit Channel from AMQChannel(amqp://guest@127.0.0.1:5672/,1)
+2025-12-03T19:23:12.357-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitTemplate      : Executing callback RabbitAdmin$$Lambda/0x00000172b4bd8f08 on RabbitMQ Channel: Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@7dfdf161 Shared Rabbit Connection: SimpleConnection@4435c9b9 [delegate=amqp://guest@127.0.0.1:5672/, localPort=49489]
+2025-12-03T19:23:12.358-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Exchange 'user-mgmt-exchange'
+2025-12-03T19:23:12.361-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Exchange 'tenant-exchange'
+2025-12-03T19:23:12.363-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Exchange 'project-exchange'
+2025-12-03T19:23:12.364-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.user.invited.queue'
+2025-12-03T19:23:12.368-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.invitation.accepted.queue'
+2025-12-03T19:23:12.369-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.access.revoked.queue'
+2025-12-03T19:23:12.371-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.tenant.created.queue'
+2025-12-03T19:23:12.372-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.project.created.queue'
+2025-12-03T19:23:12.373-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.user.invited.queue (QUEUE)] to exchange [user-mgmt-exchange] with routing key [user.invited]
+2025-12-03T19:23:12.378-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.invitation.accepted.queue (QUEUE)] to exchange [user-mgmt-exchange] with routing key [user.invitation.accepted]
+2025-12-03T19:23:12.380-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.access.revoked.queue (QUEUE)] to exchange [user-mgmt-exchange] with routing key [user.access.revoked]
+2025-12-03T19:23:12.382-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.tenant.created.queue (QUEUE)] to exchange [tenant-exchange] with routing key [tenant.created]
+2025-12-03T19:23:12.383-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.project.created.queue (QUEUE)] to exchange [project-exchange] with routing key [project.created]
+2025-12-03T19:23:12.386-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Declarations finished
+2025-12-03T19:23:12.390-05:00 DEBUG 11612 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-1] o.s.amqp.rabbit.core.RabbitTemplate      : Executing callback RabbitAdmin$$Lambda/0x00000172b4bdf3f0 on RabbitMQ Channel: Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@7dfdf161 Shared Rabbit Connection: SimpleConnection@4435c9b9 [delegate=amqp://guest@127.0.0.1:5672/, localPort=49489]
+2025-12-03T19:23:12.395-05:00 DEBUG 11612 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Starting consumer Consumer@6671ec3b: tags=[[]], channel=null, acknowledgeMode=AUTO local queue size=0
+2025-12-03T19:23:12.405-05:00 DEBUG 11612 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Started on queue 'user_mgmt.project.created.queue' with tag amq.ctag-x9qXJhdfJEu173nM_H_CHw: Consumer@6671ec3b: tags=[[]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@7dfdf161 Shared Rabbit Connection: SimpleConnection@4435c9b9 [delegate=amqp://guest@127.0.0.1:5672/, localPort=49489], acknowledgeMode=AUTO local queue size=0
+2025-12-03T19:23:12.405-05:00 DEBUG 11612 --- [user-management-service] [pool-2-thread-3] o.s.a.r.listener.BlockingQueueConsumer   : ConsumeOK: Consumer@6671ec3b: tags=[[amq.ctag-x9qXJhdfJEu173nM_H_CHw]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@7dfdf161 Shared Rabbit Connection: SimpleConnection@4435c9b9 [delegate=amqp://guest@127.0.0.1:5672/, localPort=49489], acknowledgeMode=AUTO local queue size=0
+2025-12-03T19:23:12.406-05:00 DEBUG 11612 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : Starting Rabbit listener container.
+2025-12-03T19:23:12.409-05:00 DEBUG 11612 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.c.CachingConnectionFactory       : Creating cached Rabbit Channel from AMQChannel(amqp://guest@127.0.0.1:5672/,2)
+2025-12-03T19:23:12.409-05:00 DEBUG 11612 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.amqp.rabbit.core.RabbitTemplate      : Executing callback RabbitAdmin$$Lambda/0x00000172b4bdf3f0 on RabbitMQ Channel: Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@7dfdf161 Shared Rabbit Connection: SimpleConnection@4435c9b9 [delegate=amqp://guest@127.0.0.1:5672/, localPort=49489]
+2025-12-03T19:23:12.410-05:00 DEBUG 11612 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.listener.BlockingQueueConsumer   : Starting consumer Consumer@112dfb03: tags=[[]], channel=null, acknowledgeMode=AUTO local queue size=0
+2025-12-03T19:23:12.413-05:00 DEBUG 11612 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.listener.BlockingQueueConsumer   : Started on queue 'user_mgmt.tenant.created.queue' with tag amq.ctag-1I5_l70_PNahKoHlt7xP8w: Consumer@112dfb03: tags=[[]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@7dfdf161 Shared Rabbit Connection: SimpleConnection@4435c9b9 [delegate=amqp://guest@127.0.0.1:5672/, localPort=49489], acknowledgeMode=AUTO local queue size=0
+2025-12-03T19:23:12.413-05:00 DEBUG 11612 --- [user-management-service] [pool-2-thread-4] o.s.a.r.listener.BlockingQueueConsumer   : ConsumeOK: Consumer@112dfb03: tags=[[amq.ctag-1I5_l70_PNahKoHlt7xP8w]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@7dfdf161 Shared Rabbit Connection: SimpleConnection@4435c9b9 [delegate=amqp://guest@127.0.0.1:5672/, localPort=49489], acknowledgeMode=AUTO local queue size=0
+2025-12-03T19:23:12.428-05:00  INFO 11612 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : Started UserManagementServiceApplication in 5.839 seconds (process running for 6.26)
+2025-12-03T19:24:40.799-05:00  INFO 11612 --- [user-management-service] [http-nio-8083-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-12-03T19:24:40.799-05:00  INFO 11612 --- [user-management-service] [http-nio-8083-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-12-03T19:24:40.801-05:00  INFO 11612 --- [user-management-service] [http-nio-8083-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2025-12-03T19:24:40.968-05:00  INFO 11612 --- [user-management-service] [http-nio-8083-exec-2] c.s.u.controller.TenantMemberController  : Inviting user samuelqs66@gmail.com to tenant 12ec52d9-2dfa-45d9-844b-b75d21b9df78 with role TENANT_USER
+2025-12-03T19:24:40.975-05:00  INFO 11612 --- [user-management-service] [http-nio-8083-exec-2] c.s.u.s.impl.InvitationServiceImpl       : Inviting user samuelqs66@gmail.com to TENANT 12ec52d9-2dfa-45d9-844b-b75d21b9df78 by user 88cf5082-130b-482e-ba8c-069d2acd9493 (test2@correo.com)
+2025-12-03T19:24:41.033-05:00 DEBUG 11612 --- [user-management-service] [http-nio-8083-exec-2] org.hibernate.SQL                        : 
+    select
+        ie1_0.id 
+    from
+        invitations ie1_0 
+    where
+        ie1_0.email=? 
+        and ie1_0.resource_id=? 
+        and ie1_0.type=? 
+        and ie1_0.status=? 
+    fetch
+        first ? rows only
+2025-12-03T19:24:41.067-05:00  INFO 11612 --- [user-management-service] [http-nio-8083-exec-2] c.s.u.s.impl.InvitationServiceImpl       : Invitation created: 8989a9c9-5ec4-48d8-824d-308e6a466969
+2025-12-03T19:24:41.069-05:00  INFO 11612 --- [user-management-service] [http-nio-8083-exec-2] c.s.u.e.UserManagementEventPublisher     : Publishing user.invited event for: samuelqs66@gmail.com
+2025-12-03T19:24:41.079-05:00 DEBUG 11612 --- [user-management-service] [http-nio-8083-exec-2] o.s.a.r.c.CachingConnectionFactory       : Creating cached Rabbit Channel from AMQChannel(amqp://guest@127.0.0.1:5672/,3)
+2025-12-03T19:24:41.080-05:00 DEBUG 11612 --- [user-management-service] [http-nio-8083-exec-2] o.s.amqp.rabbit.core.RabbitTemplate      : Executing callback RabbitTemplate$$Lambda/0x00000172b4cbb090 on RabbitMQ Channel: Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,3), conn: Proxy@7dfdf161 Shared Rabbit Connection: SimpleConnection@4435c9b9 [delegate=amqp://guest@127.0.0.1:5672/, localPort=49489]
+2025-12-03T19:24:41.088-05:00 DEBUG 11612 --- [user-management-service] [http-nio-8083-exec-2] o.s.amqp.rabbit.core.RabbitTemplate      : Publishing message [(Body:'[B@62317ce9(byte[553])' MessageProperties [headers={__ContentTypeId__=java.lang.Object, __KeyTypeId__=java.lang.Object, __TypeId__=java.util.HashMap}, contentType=application/json, contentEncoding=UTF-8, contentLength=553, deliveryMode=PERSISTENT, priority=0, deliveryTag=0])] on exchange [user-mgmt-exchange], routingKey = [user.invited]
+2025-12-03T19:24:41.109-05:00 DEBUG 11612 --- [user-management-service] [http-nio-8083-exec-2] org.hibernate.SQL                        : 
+    insert 
+    into
+        invitations
+        (accepted_at, created_at, email, expires_at, invited_by, inviter_email, resource_id, resource_name, role, status, token, type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2025-12-03T21:28:41.951-05:00  INFO 1592 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : Starting UserManagementServiceApplication using Java 21.0.8 with PID 1592 (C:\Users\USUARIO\Documents\RIWI\proyecto_ruta_avanzada\sentinel\project-root-java\user-management-service\target\classes started by USUARIO in C:\Users\USUARIO\Documents\RIWI\proyecto_ruta_avanzada\sentinel\project-root-java\user-management-service)
+2025-12-03T21:28:41.955-05:00  INFO 1592 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : No active profile set, falling back to 1 default profile: "default"
+2025-12-03T21:28:43.218-05:00  INFO 1592 --- [user-management-service] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-03T21:28:43.292-05:00  INFO 1592 --- [user-management-service] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 64 ms. Found 3 JPA repository interfaces.
+2025-12-03T21:28:43.510-05:00  INFO 1592 --- [user-management-service] [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=ef802f64-1f6e-3b51-9275-e05ab1fadafa
+2025-12-03T21:28:43.989-05:00  INFO 1592 --- [user-management-service] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8083 (http)
+2025-12-03T21:28:44.003-05:00  INFO 1592 --- [user-management-service] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-12-03T21:28:44.004-05:00  INFO 1592 --- [user-management-service] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.49]
+2025-12-03T21:28:44.071-05:00  INFO 1592 --- [user-management-service] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-12-03T21:28:44.072-05:00  INFO 1592 --- [user-management-service] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2050 ms
+2025-12-03T21:28:44.358-05:00  INFO 1592 --- [user-management-service] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-03T21:28:44.438-05:00  INFO 1592 --- [user-management-service] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.36.Final
+2025-12-03T21:28:44.478-05:00  INFO 1592 --- [user-management-service] [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-12-03T21:28:44.764-05:00  INFO 1592 --- [user-management-service] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-03T21:28:44.793-05:00  INFO 1592 --- [user-management-service] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-12-03T21:28:44.937-05:00  INFO 1592 --- [user-management-service] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@1397b141
+2025-12-03T21:28:44.938-05:00  INFO 1592 --- [user-management-service] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-12-03T21:28:44.970-05:00  WARN 1592 --- [user-management-service] [main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-12-03T21:28:44.987-05:00  INFO 1592 --- [user-management-service] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 18.1
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-12-03T21:28:45.638-05:00  INFO 1592 --- [user-management-service] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-12-03T21:28:45.700-05:00  INFO 1592 --- [user-management-service] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-03T21:28:45.941-05:00  INFO 1592 --- [user-management-service] [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-12-03T21:28:46.688-05:00  WARN 1592 --- [user-management-service] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-03T21:28:46.726-05:00  WARN 1592 --- [user-management-service] [main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 6a215c4e-ee89-48ab-81fd-aec09406db2a
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-12-03T21:28:46.735-05:00  INFO 1592 --- [user-management-service] [main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2025-12-03T21:28:47.076-05:00  INFO 1592 --- [user-management-service] [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2025-12-03T21:28:47.512-05:00 DEBUG 1592 --- [user-management-service] [main] .a.r.l.a.MessagingMessageListenerAdapter : Inferred argument type for public void com.sentinel.user_management_service.events.listeners.ProjectCreatedListener.handleProjectCreated(java.util.Map) is java.util.Map<java.lang.String, java.lang.Object>
+2025-12-03T21:28:47.523-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : No global properties bean
+2025-12-03T21:28:47.523-05:00 DEBUG 1592 --- [user-management-service] [main] .a.r.l.a.MessagingMessageListenerAdapter : Inferred argument type for public void com.sentinel.user_management_service.events.listeners.TenantCreatedListener.handleTenantCreated(java.util.Map) is java.util.Map<java.lang.String, java.lang.Object>
+2025-12-03T21:28:47.524-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : No global properties bean
+2025-12-03T21:28:47.597-05:00  INFO 1592 --- [user-management-service] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8083 (http) with context path '/'
+2025-12-03T21:28:47.601-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : Starting Rabbit listener container.
+2025-12-03T21:28:47.605-05:00  INFO 1592 --- [user-management-service] [main] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2025-12-03T21:28:47.636-05:00  INFO 1592 --- [user-management-service] [main] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#636e6791:0/SimpleConnection@16019c16 [delegate=amqp://guest@127.0.0.1:5672/, localPort=65475]
+2025-12-03T21:28:47.639-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Initializing declarations
+2025-12-03T21:28:47.647-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.a.r.c.CachingConnectionFactory       : Creating cached Rabbit Channel from AMQChannel(amqp://guest@127.0.0.1:5672/,1)
+2025-12-03T21:28:47.654-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitTemplate      : Executing callback RabbitAdmin$$Lambda/0x0000020c08bdcdd0 on RabbitMQ Channel: Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@2091b6b9 Shared Rabbit Connection: SimpleConnection@16019c16 [delegate=amqp://guest@127.0.0.1:5672/, localPort=65475]
+2025-12-03T21:28:47.654-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Exchange 'user-mgmt-exchange'
+2025-12-03T21:28:47.657-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Exchange 'tenant-exchange'
+2025-12-03T21:28:47.659-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Exchange 'project-exchange'
+2025-12-03T21:28:47.660-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.user.invited.queue'
+2025-12-03T21:28:47.664-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.invitation.accepted.queue'
+2025-12-03T21:28:47.666-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.access.revoked.queue'
+2025-12-03T21:28:47.667-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.tenant.created.queue'
+2025-12-03T21:28:47.669-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.project.created.queue'
+2025-12-03T21:28:47.670-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.user.invited.queue (QUEUE)] to exchange [user-mgmt-exchange] with routing key [user.invited]
+2025-12-03T21:28:47.673-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.invitation.accepted.queue (QUEUE)] to exchange [user-mgmt-exchange] with routing key [user.invitation.accepted]
+2025-12-03T21:28:47.674-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.access.revoked.queue (QUEUE)] to exchange [user-mgmt-exchange] with routing key [user.access.revoked]
+2025-12-03T21:28:47.676-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.tenant.created.queue (QUEUE)] to exchange [tenant-exchange] with routing key [tenant.created]
+2025-12-03T21:28:47.678-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.project.created.queue (QUEUE)] to exchange [project-exchange] with routing key [project.created]
+2025-12-03T21:28:47.679-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Declarations finished
+2025-12-03T21:28:47.684-05:00 DEBUG 1592 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-1] o.s.amqp.rabbit.core.RabbitTemplate      : Executing callback RabbitAdmin$$Lambda/0x0000020c08be3468 on RabbitMQ Channel: Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@2091b6b9 Shared Rabbit Connection: SimpleConnection@16019c16 [delegate=amqp://guest@127.0.0.1:5672/, localPort=65475]
+2025-12-03T21:28:47.687-05:00 DEBUG 1592 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Starting consumer Consumer@11f2be38: tags=[[]], channel=null, acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:28:47.696-05:00 DEBUG 1592 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Started on queue 'user_mgmt.project.created.queue' with tag amq.ctag-da9Akv6YRN-ZRzGWYdBmxA: Consumer@11f2be38: tags=[[]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@2091b6b9 Shared Rabbit Connection: SimpleConnection@16019c16 [delegate=amqp://guest@127.0.0.1:5672/, localPort=65475], acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:28:47.697-05:00 DEBUG 1592 --- [user-management-service] [pool-2-thread-3] o.s.a.r.listener.BlockingQueueConsumer   : ConsumeOK: Consumer@11f2be38: tags=[[amq.ctag-da9Akv6YRN-ZRzGWYdBmxA]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@2091b6b9 Shared Rabbit Connection: SimpleConnection@16019c16 [delegate=amqp://guest@127.0.0.1:5672/, localPort=65475], acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:28:47.697-05:00 DEBUG 1592 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : Starting Rabbit listener container.
+2025-12-03T21:28:47.700-05:00 DEBUG 1592 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.c.CachingConnectionFactory       : Creating cached Rabbit Channel from AMQChannel(amqp://guest@127.0.0.1:5672/,2)
+2025-12-03T21:28:47.700-05:00 DEBUG 1592 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.amqp.rabbit.core.RabbitTemplate      : Executing callback RabbitAdmin$$Lambda/0x0000020c08be3468 on RabbitMQ Channel: Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@2091b6b9 Shared Rabbit Connection: SimpleConnection@16019c16 [delegate=amqp://guest@127.0.0.1:5672/, localPort=65475]
+2025-12-03T21:28:47.702-05:00 DEBUG 1592 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.listener.BlockingQueueConsumer   : Starting consumer Consumer@6402f6b1: tags=[[]], channel=null, acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:28:47.705-05:00 DEBUG 1592 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.listener.BlockingQueueConsumer   : Started on queue 'user_mgmt.tenant.created.queue' with tag amq.ctag-JGjH6TTVIUOaMM2KZ7GbrA: Consumer@6402f6b1: tags=[[]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@2091b6b9 Shared Rabbit Connection: SimpleConnection@16019c16 [delegate=amqp://guest@127.0.0.1:5672/, localPort=65475], acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:28:47.705-05:00 DEBUG 1592 --- [user-management-service] [pool-2-thread-4] o.s.a.r.listener.BlockingQueueConsumer   : ConsumeOK: Consumer@6402f6b1: tags=[[amq.ctag-JGjH6TTVIUOaMM2KZ7GbrA]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@2091b6b9 Shared Rabbit Connection: SimpleConnection@16019c16 [delegate=amqp://guest@127.0.0.1:5672/, localPort=65475], acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:28:47.720-05:00  INFO 1592 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : Started UserManagementServiceApplication in 6.243 seconds (process running for 6.982)
+2025-12-03T21:53:44.227-05:00  INFO 5356 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : Starting UserManagementServiceApplication using Java 21.0.8 with PID 5356 (C:\Users\USUARIO\Documents\RIWI\proyecto_ruta_avanzada\sentinel\project-root-java\user-management-service\target\classes started by USUARIO in C:\Users\USUARIO\Documents\RIWI\proyecto_ruta_avanzada\sentinel\project-root-java\user-management-service)
+2025-12-03T21:53:44.229-05:00  INFO 5356 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : No active profile set, falling back to 1 default profile: "default"
+2025-12-03T21:53:45.236-05:00  INFO 5356 --- [user-management-service] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-03T21:53:45.306-05:00  INFO 5356 --- [user-management-service] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 59 ms. Found 3 JPA repository interfaces.
+2025-12-03T21:53:45.518-05:00  INFO 5356 --- [user-management-service] [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=ef802f64-1f6e-3b51-9275-e05ab1fadafa
+2025-12-03T21:53:45.940-05:00  INFO 5356 --- [user-management-service] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8083 (http)
+2025-12-03T21:53:45.956-05:00  INFO 5356 --- [user-management-service] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-12-03T21:53:45.957-05:00  INFO 5356 --- [user-management-service] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.49]
+2025-12-03T21:53:46.010-05:00  INFO 5356 --- [user-management-service] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-12-03T21:53:46.030-05:00  INFO 5356 --- [user-management-service] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1749 ms
+2025-12-03T21:53:46.322-05:00  INFO 5356 --- [user-management-service] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-03T21:53:46.363-05:00  INFO 5356 --- [user-management-service] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.36.Final
+2025-12-03T21:53:46.386-05:00  INFO 5356 --- [user-management-service] [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-12-03T21:53:46.622-05:00  INFO 5356 --- [user-management-service] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-03T21:53:46.644-05:00  INFO 5356 --- [user-management-service] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-12-03T21:53:46.787-05:00  INFO 5356 --- [user-management-service] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@b842275
+2025-12-03T21:53:46.789-05:00  INFO 5356 --- [user-management-service] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-12-03T21:53:46.821-05:00  WARN 5356 --- [user-management-service] [main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-12-03T21:53:46.838-05:00  INFO 5356 --- [user-management-service] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 18.1
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-12-03T21:53:47.425-05:00  INFO 5356 --- [user-management-service] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-12-03T21:53:47.473-05:00  INFO 5356 --- [user-management-service] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-03T21:53:47.680-05:00  INFO 5356 --- [user-management-service] [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-12-03T21:53:48.358-05:00  WARN 5356 --- [user-management-service] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-03T21:53:48.385-05:00  WARN 5356 --- [user-management-service] [main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 97d65000-c984-4ab9-9c30-369aeb5617ac
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-12-03T21:53:48.393-05:00  INFO 5356 --- [user-management-service] [main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2025-12-03T21:53:48.698-05:00  INFO 5356 --- [user-management-service] [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2025-12-03T21:53:49.074-05:00 DEBUG 5356 --- [user-management-service] [main] .a.r.l.a.MessagingMessageListenerAdapter : Inferred argument type for public void com.sentinel.user_management_service.events.listeners.ProjectCreatedListener.handleProjectCreated(java.util.Map) is java.util.Map<java.lang.String, java.lang.Object>
+2025-12-03T21:53:49.085-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : No global properties bean
+2025-12-03T21:53:49.086-05:00 DEBUG 5356 --- [user-management-service] [main] .a.r.l.a.MessagingMessageListenerAdapter : Inferred argument type for public void com.sentinel.user_management_service.events.listeners.TenantCreatedListener.handleTenantCreated(java.util.Map) is java.util.Map<java.lang.String, java.lang.Object>
+2025-12-03T21:53:49.086-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : No global properties bean
+2025-12-03T21:53:49.125-05:00  INFO 5356 --- [user-management-service] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8083 (http) with context path '/'
+2025-12-03T21:53:49.130-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : Starting Rabbit listener container.
+2025-12-03T21:53:49.132-05:00  INFO 5356 --- [user-management-service] [main] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2025-12-03T21:53:49.165-05:00  INFO 5356 --- [user-management-service] [main] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#7ff48cdc:0/SimpleConnection@321c6e0c [delegate=amqp://guest@127.0.0.1:5672/, localPort=63069]
+2025-12-03T21:53:49.169-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Initializing declarations
+2025-12-03T21:53:49.180-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.a.r.c.CachingConnectionFactory       : Creating cached Rabbit Channel from AMQChannel(amqp://guest@127.0.0.1:5672/,1)
+2025-12-03T21:53:49.186-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitTemplate      : Executing callback RabbitAdmin$$Lambda/0x0000022de2bda6b0 on RabbitMQ Channel: Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@7a54fc29 Shared Rabbit Connection: SimpleConnection@321c6e0c [delegate=amqp://guest@127.0.0.1:5672/, localPort=63069]
+2025-12-03T21:53:49.186-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Exchange 'user-mgmt-exchange'
+2025-12-03T21:53:49.189-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Exchange 'tenant-exchange'
+2025-12-03T21:53:49.190-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Exchange 'project-exchange'
+2025-12-03T21:53:49.192-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.user.invited.queue'
+2025-12-03T21:53:49.194-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.invitation.accepted.queue'
+2025-12-03T21:53:49.196-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.access.revoked.queue'
+2025-12-03T21:53:49.197-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.tenant.created.queue'
+2025-12-03T21:53:49.198-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : declaring Queue 'user_mgmt.project.created.queue'
+2025-12-03T21:53:49.199-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.user.invited.queue (QUEUE)] to exchange [user-mgmt-exchange] with routing key [user.invited]
+2025-12-03T21:53:49.202-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.invitation.accepted.queue (QUEUE)] to exchange [user-mgmt-exchange] with routing key [user.invitation.accepted]
+2025-12-03T21:53:49.203-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.access.revoked.queue (QUEUE)] to exchange [user-mgmt-exchange] with routing key [user.access.revoked]
+2025-12-03T21:53:49.204-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.tenant.created.queue (QUEUE)] to exchange [tenant-exchange] with routing key [tenant.created]
+2025-12-03T21:53:49.206-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Binding destination [user_mgmt.project.created.queue (QUEUE)] to exchange [project-exchange] with routing key [project.created]
+2025-12-03T21:53:49.208-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.amqp.rabbit.core.RabbitAdmin         : Declarations finished
+2025-12-03T21:53:49.213-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-1] o.s.amqp.rabbit.core.RabbitTemplate      : Executing callback RabbitAdmin$$Lambda/0x0000022de2be6d00 on RabbitMQ Channel: Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@7a54fc29 Shared Rabbit Connection: SimpleConnection@321c6e0c [delegate=amqp://guest@127.0.0.1:5672/, localPort=63069]
+2025-12-03T21:53:49.216-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Starting consumer Consumer@71e7b3c9: tags=[[]], channel=null, acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:53:49.225-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Started on queue 'user_mgmt.project.created.queue' with tag amq.ctag-jsC1nPxIdqZ9nuATwpzFDQ: Consumer@71e7b3c9: tags=[[]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@7a54fc29 Shared Rabbit Connection: SimpleConnection@321c6e0c [delegate=amqp://guest@127.0.0.1:5672/, localPort=63069], acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:53:49.225-05:00 DEBUG 5356 --- [user-management-service] [pool-2-thread-3] o.s.a.r.listener.BlockingQueueConsumer   : ConsumeOK: Consumer@71e7b3c9: tags=[[amq.ctag-jsC1nPxIdqZ9nuATwpzFDQ]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,1), conn: Proxy@7a54fc29 Shared Rabbit Connection: SimpleConnection@321c6e0c [delegate=amqp://guest@127.0.0.1:5672/, localPort=63069], acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:53:49.225-05:00 DEBUG 5356 --- [user-management-service] [main] o.s.a.r.l.SimpleMessageListenerContainer : Starting Rabbit listener container.
+2025-12-03T21:53:49.228-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.c.CachingConnectionFactory       : Creating cached Rabbit Channel from AMQChannel(amqp://guest@127.0.0.1:5672/,2)
+2025-12-03T21:53:49.228-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.amqp.rabbit.core.RabbitTemplate      : Executing callback RabbitAdmin$$Lambda/0x0000022de2be6d00 on RabbitMQ Channel: Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@7a54fc29 Shared Rabbit Connection: SimpleConnection@321c6e0c [delegate=amqp://guest@127.0.0.1:5672/, localPort=63069]
+2025-12-03T21:53:49.229-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.listener.BlockingQueueConsumer   : Starting consumer Consumer@57cc535: tags=[[]], channel=null, acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:53:49.232-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.listener.BlockingQueueConsumer   : Started on queue 'user_mgmt.tenant.created.queue' with tag amq.ctag-PCxDRelEjXJqUzz-clPDRQ: Consumer@57cc535: tags=[[]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@7a54fc29 Shared Rabbit Connection: SimpleConnection@321c6e0c [delegate=amqp://guest@127.0.0.1:5672/, localPort=63069], acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:53:49.232-05:00 DEBUG 5356 --- [user-management-service] [pool-2-thread-4] o.s.a.r.listener.BlockingQueueConsumer   : ConsumeOK: Consumer@57cc535: tags=[[amq.ctag-PCxDRelEjXJqUzz-clPDRQ]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@7a54fc29 Shared Rabbit Connection: SimpleConnection@321c6e0c [delegate=amqp://guest@127.0.0.1:5672/, localPort=63069], acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:53:49.248-05:00  INFO 5356 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : Started UserManagementServiceApplication in 5.451 seconds (process running for 5.875)
+2025-12-03T21:56:11.887-05:00 DEBUG 5356 --- [user-management-service] [pool-2-thread-5] o.s.a.r.listener.BlockingQueueConsumer   : Storing delivery for consumerTag: 'amq.ctag-PCxDRelEjXJqUzz-clPDRQ' with deliveryTag: '1' in Consumer@57cc535: tags=[[amq.ctag-PCxDRelEjXJqUzz-clPDRQ]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@7a54fc29 Shared Rabbit Connection: SimpleConnection@321c6e0c [delegate=amqp://guest@127.0.0.1:5672/, localPort=63069], acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:56:11.896-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.listener.BlockingQueueConsumer   : Received message: (Body:'[B@75e2d7e6(byte[434])' MessageProperties [headers={__ContentTypeId__=java.lang.Object, __KeyTypeId__=java.lang.Object, __TypeId__=java.util.HashMap}, contentType=application/json, contentEncoding=UTF-8, contentLength=0, receivedDeliveryMode=PERSISTENT, priority=0, redelivered=false, receivedExchange=tenant-exchange, receivedRoutingKey=tenant.created, deliveryTag=1, consumerTag=amq.ctag-PCxDRelEjXJqUzz-clPDRQ, consumerQueue=user_mgmt.tenant.created.queue])
+2025-12-03T21:56:11.924-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] .a.r.l.a.MessagingMessageListenerAdapter : Processing [GenericMessage [payload={eventId=38f3f668-f73d-455f-a25f-adddbe979ed1, metadata={correlationId=237748a1-ac92-4b22-b9cd-95eb5a873c18, source=tenant-service}, data={tenantId=bc0c7a9c-5cb6-4da3-a7b4-2f9910d745af, name=testi's Workspace, type=PERSONAL, userId=47c9adb5-0f33-42d9-93c3-8c1eb752fbc7, plan=FREE, slug=testis-workspace-47c9adb5}, eventType=tenant.created, version=1.0, timestamp=2025-12-03T21:56:11.875856400}, headers={amqp_receivedDeliveryMode=PERSISTENT, amqp_receivedExchange=tenant-exchange, amqp_deliveryTag=1, amqp_consumerQueue=user_mgmt.tenant.created.queue, amqp_redelivered=false, __ContentTypeId__=java.lang.Object, amqp_receivedRoutingKey=tenant.created, amqp_contentEncoding=UTF-8, __KeyTypeId__=java.lang.Object, amqp_retryCount=0, id=87f8db0f-52b1-811b-f5dc-0ca6989e9db7, amqp_consumerTag=amq.ctag-PCxDRelEjXJqUzz-clPDRQ, amqp_lastInBatch=false, contentType=application/json, __TypeId__=java.util.HashMap, timestamp=1764816971924}]]
+2025-12-03T21:56:11.925-05:00  INFO 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.e.listeners.TenantCreatedListener  : Received tenant.created event: {eventId=38f3f668-f73d-455f-a25f-adddbe979ed1, metadata={correlationId=237748a1-ac92-4b22-b9cd-95eb5a873c18, source=tenant-service}, data={tenantId=bc0c7a9c-5cb6-4da3-a7b4-2f9910d745af, name=testi's Workspace, type=PERSONAL, userId=47c9adb5-0f33-42d9-93c3-8c1eb752fbc7, plan=FREE, slug=testis-workspace-47c9adb5}, eventType=tenant.created, version=1.0, timestamp=2025-12-03T21:56:11.875856400}
+2025-12-03T21:56:11.925-05:00  INFO 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.e.listeners.TenantCreatedListener  : Adding owner 47c9adb5-0f33-42d9-93c3-8c1eb752fbc7 as TENANT_ADMIN to tenant bc0c7a9c-5cb6-4da3-a7b4-2f9910d745af
+2025-12-03T21:56:11.931-05:00  INFO 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.s.impl.TenantMemberServiceImpl     : Adding member 47c9adb5-0f33-42d9-93c3-8c1eb752fbc7 to tenant bc0c7a9c-5cb6-4da3-a7b4-2f9910d745af with role TENANT_ADMIN
+2025-12-03T21:56:11.997-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] org.hibernate.SQL                        : 
+    select
+        tme1_0.id 
+    from
+        tenant_members tme1_0 
+    where
+        tme1_0.tenant_id=? 
+        and tme1_0.user_id=? 
+    fetch
+        first ? rows only
+2025-12-03T21:56:12.033-05:00  INFO 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.s.impl.TenantMemberServiceImpl     : Member added successfully: fcb2b8d1-5b54-4d99-a53a-515c60fbb4fd
+2025-12-03T21:56:12.047-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] org.hibernate.SQL                        : 
+    insert 
+    into
+        tenant_members
+        (created_at, invited_by, joined_at, role, tenant_id, updated_at, user_id, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?)
+2025-12-03T21:56:12.053-05:00  INFO 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.e.listeners.TenantCreatedListener  : Owner successfully added as TENANT_ADMIN
+2025-12-03T21:56:51.532-05:00 DEBUG 5356 --- [user-management-service] [pool-2-thread-6] o.s.a.r.listener.BlockingQueueConsumer   : Storing delivery for consumerTag: 'amq.ctag-PCxDRelEjXJqUzz-clPDRQ' with deliveryTag: '2' in Consumer@57cc535: tags=[[amq.ctag-PCxDRelEjXJqUzz-clPDRQ]], channel=Cached Rabbit Channel: AMQChannel(amqp://guest@127.0.0.1:5672/,2), conn: Proxy@7a54fc29 Shared Rabbit Connection: SimpleConnection@321c6e0c [delegate=amqp://guest@127.0.0.1:5672/, localPort=63069], acknowledgeMode=AUTO local queue size=0
+2025-12-03T21:56:51.533-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] o.s.a.r.listener.BlockingQueueConsumer   : Received message: (Body:'[B@10f235dc(byte[431])' MessageProperties [headers={__ContentTypeId__=java.lang.Object, __KeyTypeId__=java.lang.Object, __TypeId__=java.util.HashMap}, contentType=application/json, contentEncoding=UTF-8, contentLength=0, receivedDeliveryMode=PERSISTENT, priority=0, redelivered=false, receivedExchange=tenant-exchange, receivedRoutingKey=tenant.created, deliveryTag=2, consumerTag=amq.ctag-PCxDRelEjXJqUzz-clPDRQ, consumerQueue=user_mgmt.tenant.created.queue])
+2025-12-03T21:56:51.533-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] .a.r.l.a.MessagingMessageListenerAdapter : Processing [GenericMessage [payload={eventId=7796b8ae-de02-4075-97a8-78fe9d82715e, metadata={correlationId=671d4420-c36d-4c0e-8415-96d376373c9d, source=tenant-service}, data={tenantId=495c430a-3892-46bd-8c41-b9938f3d533c, name=testo's Workspace, type=PERSONAL, userId=9a0b559d-b37c-40e7-bd56-4d3c4f86ccdc, plan=FREE, slug=testos-workspace-9a0b559d}, eventType=tenant.created, version=1.0, timestamp=2025-12-03T21:56:51.527947}, headers={amqp_receivedDeliveryMode=PERSISTENT, amqp_receivedExchange=tenant-exchange, amqp_deliveryTag=2, amqp_consumerQueue=user_mgmt.tenant.created.queue, amqp_redelivered=false, __ContentTypeId__=java.lang.Object, amqp_receivedRoutingKey=tenant.created, amqp_contentEncoding=UTF-8, __KeyTypeId__=java.lang.Object, amqp_retryCount=0, id=fc38da9f-7eae-773e-8a59-63f4a13e0b91, amqp_consumerTag=amq.ctag-PCxDRelEjXJqUzz-clPDRQ, amqp_lastInBatch=false, contentType=application/json, __TypeId__=java.util.HashMap, timestamp=1764817011533}]]
+2025-12-03T21:56:51.533-05:00  INFO 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.e.listeners.TenantCreatedListener  : Received tenant.created event: {eventId=7796b8ae-de02-4075-97a8-78fe9d82715e, metadata={correlationId=671d4420-c36d-4c0e-8415-96d376373c9d, source=tenant-service}, data={tenantId=495c430a-3892-46bd-8c41-b9938f3d533c, name=testo's Workspace, type=PERSONAL, userId=9a0b559d-b37c-40e7-bd56-4d3c4f86ccdc, plan=FREE, slug=testos-workspace-9a0b559d}, eventType=tenant.created, version=1.0, timestamp=2025-12-03T21:56:51.527947}
+2025-12-03T21:56:51.534-05:00  INFO 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.e.listeners.TenantCreatedListener  : Adding owner 9a0b559d-b37c-40e7-bd56-4d3c4f86ccdc as TENANT_ADMIN to tenant 495c430a-3892-46bd-8c41-b9938f3d533c
+2025-12-03T21:56:51.535-05:00  INFO 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.s.impl.TenantMemberServiceImpl     : Adding member 9a0b559d-b37c-40e7-bd56-4d3c4f86ccdc to tenant 495c430a-3892-46bd-8c41-b9938f3d533c with role TENANT_ADMIN
+2025-12-03T21:56:51.537-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] org.hibernate.SQL                        : 
+    select
+        tme1_0.id 
+    from
+        tenant_members tme1_0 
+    where
+        tme1_0.tenant_id=? 
+        and tme1_0.user_id=? 
+    fetch
+        first ? rows only
+2025-12-03T21:56:51.539-05:00  INFO 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.s.impl.TenantMemberServiceImpl     : Member added successfully: f67259e8-09d3-4dda-91d5-3cfb26af96b1
+2025-12-03T21:56:51.540-05:00 DEBUG 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] org.hibernate.SQL                        : 
+    insert 
+    into
+        tenant_members
+        (created_at, invited_by, joined_at, role, tenant_id, updated_at, user_id, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?)
+2025-12-03T21:56:51.542-05:00  INFO 5356 --- [user-management-service] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#1-1] c.s.u.e.listeners.TenantCreatedListener  : Owner successfully added as TENANT_ADMIN
+2025-12-03T22:19:33.843-05:00  INFO 11176 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : Starting UserManagementServiceApplication using Java 21.0.8 with PID 11176 (C:\Users\USUARIO\Documents\RIWI\proyecto_ruta_avanzada\sentinel\project-root-java\user-management-service\target\classes started by USUARIO in C:\Users\USUARIO\Documents\RIWI\proyecto_ruta_avanzada\sentinel\project-root-java\user-management-service)
+2025-12-03T22:19:33.846-05:00  INFO 11176 --- [user-management-service] [main] c.s.u.UserManagementServiceApplication   : No active profile set, falling back to 1 default profile: "default"
