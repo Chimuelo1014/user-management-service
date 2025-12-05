@@ -3,6 +3,7 @@
 -- ===================================
 
 -- Drop tables if exist
+DROP TABLE IF EXISTS invitation_projects CASCADE;
 DROP TABLE IF EXISTS project_members CASCADE;
 DROP TABLE IF EXISTS tenant_members CASCADE;
 DROP TABLE IF EXISTS invitations CASCADE;
@@ -65,6 +66,17 @@ CREATE TABLE invitations (
 );
 
 -- ===================================
+-- INVITATION_PROJECTS (NEW)
+-- ===================================
+CREATE TABLE invitation_projects (
+    invitation_id UUID NOT NULL,
+    project_id UUID NOT NULL,
+    
+    CONSTRAINT fk_invitation FOREIGN KEY (invitation_id) REFERENCES invitations(id) ON DELETE CASCADE,
+    CONSTRAINT uq_invitation_project UNIQUE (invitation_id, project_id)
+);
+
+-- ===================================
 -- INDEXES
 -- ===================================
 
@@ -86,6 +98,10 @@ CREATE INDEX idx_invitations_status ON invitations(status);
 CREATE INDEX idx_invitations_resource_id ON invitations(resource_id);
 CREATE INDEX idx_invitations_type ON invitations(type);
 CREATE INDEX idx_invitations_expires_at ON invitations(expires_at);
+
+-- Invitation projects
+CREATE INDEX idx_invitation_projects_invitation_id ON invitation_projects(invitation_id);
+CREATE INDEX idx_invitation_projects_project_id ON invitation_projects(project_id);
 
 -- ===================================
 -- FUNCTIONS & TRIGGERS
@@ -115,12 +131,3 @@ CREATE TRIGGER update_project_members_updated_at
 BEFORE UPDATE ON project_members
 FOR EACH ROW 
 EXECUTE FUNCTION update_updated_at_column();
-
--- ===================================
--- SAMPLE DATA (opcional para testing)
--- ===================================
-
--- Uncomment para insertar datos de prueba
--- INSERT INTO tenant_members (tenant_id, user_id, role) 
--- VALUES ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', 'TENANT_ADMIN')
--- ON CONFLICT (tenant_id, user_id) DO NOTHING;

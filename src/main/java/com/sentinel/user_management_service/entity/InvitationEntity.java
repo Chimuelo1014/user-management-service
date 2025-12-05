@@ -7,6 +7,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -47,6 +49,16 @@ public class InvitationEntity {
 
     @Column(nullable = false, length = 20)
     private String role;
+
+    // ✅ NUEVO: Lista de proyectos a los que tendrá acceso
+    @ElementCollection
+    @CollectionTable(
+        name = "invitation_projects",
+        joinColumns = @JoinColumn(name = "invitation_id")
+    )
+    @Column(name = "project_id")
+    @Builder.Default
+    private List<UUID> projectIds = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -92,5 +104,20 @@ public class InvitationEntity {
 
     public void markExpired() {
         this.status = InvitationStatus.EXPIRED;
+    }
+
+    public void addProject(UUID projectId) {
+        if (this.projectIds == null) {
+            this.projectIds = new ArrayList<>();
+        }
+        if (!this.projectIds.contains(projectId)) {
+            this.projectIds.add(projectId);
+        }
+    }
+
+    public void removeProject(UUID projectId) {
+        if (this.projectIds != null) {
+            this.projectIds.remove(projectId);
+        }
     }
 }
