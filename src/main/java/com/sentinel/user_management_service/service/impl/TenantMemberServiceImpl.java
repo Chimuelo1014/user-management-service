@@ -161,6 +161,21 @@ public class TenantMemberServiceImpl implements TenantMemberService {
         return tenantMemberRepository.countByTenantId(tenantId);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<UUID> getUserTenantIds(UUID userId) {
+        log.debug("Fetching tenant IDs for user: {}", userId);
+
+        List<UUID> tenantIds = tenantMemberRepository.findByUserId(userId)
+                .stream()
+                .map(TenantMemberEntity::getTenantId)
+                .collect(Collectors.toList());
+
+        log.debug("User {} is member of {} tenants", userId, tenantIds.size());
+
+        return tenantIds;
+    }
+
     // Helper method
     private TenantMemberDTO mapToDTO(TenantMemberEntity entity) {
         return TenantMemberDTO.builder()

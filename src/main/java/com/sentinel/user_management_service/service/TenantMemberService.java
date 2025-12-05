@@ -25,4 +25,6 @@ public interface TenantMemberService {
     boolean isAdmin(UUID tenantId, UUID userId);
     
     long countMembers(UUID tenantId);
+
+     List<UUID> getUserTenantIds(UUID userId);
 }
