@@ -27,7 +27,11 @@ public interface InvitationRepository extends JpaRepository<InvitationEntity, UU
 
     List<InvitationEntity> findByResourceIdAndTypeAndStatus(UUID resourceId, InvitationType type, InvitationStatus status);
 
+    Optional<InvitationEntity> findByEmailAndResourceIdAndTypeAndStatus(String email, UUID resourceId, InvitationType type, InvitationStatus status);
+
     boolean existsByEmailAndResourceIdAndTypeAndStatus(String email, UUID resourceId, InvitationType type, InvitationStatus status);
+
+    List<InvitationEntity> findByStatus(InvitationStatus status);
 
     @Query("SELECT i FROM InvitationEntity i WHERE i.status = :status AND i.expiresAt < :now")
     List<InvitationEntity> findExpiredInvitations(@Param("status") InvitationStatus status, @Param("now") LocalDateTime now);

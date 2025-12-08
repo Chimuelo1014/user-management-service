@@ -1,6 +1,7 @@
 package com.sentinel.user_management_service.service.impl;
 
 import com.sentinel.user_management_service.dto.response.ProjectMemberDTO;
+import com.sentinel.user_management_service.dto.response.ProjectWithDetailsDTO;
 import com.sentinel.user_management_service.entity.ProjectMemberEntity;
 import com.sentinel.user_management_service.enums.ProjectRole;
 import com.sentinel.user_management_service.exception.MemberAlreadyExistsException;
@@ -8,6 +9,8 @@ import com.sentinel.user_management_service.exception.MemberNotFoundException;
 import com.sentinel.user_management_service.exception.PermissionDeniedException;
 import com.sentinel.user_management_service.repository.ProjectMemberRepository;
 import com.sentinel.user_management_service.service.ProjectMemberService;
+import com.sentinel.user_management_service.client.ProjectServiceClient;
+import com.sentinel.user_management_service.client.dto.ProjectDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 public class ProjectMemberServiceImpl implements ProjectMemberService {
 
     private final ProjectMemberRepository projectMemberRepository;
+    private final ProjectServiceClient projectServiceClient;
 
     @Override
     @Transactional
@@ -66,6 +70,41 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProjectWithDetailsDTO> getUserProjectsWithDetails(UUID userId) {
+        log.debug("Fetching projects with details for user: {}", userId);
+        
+        List<ProjectMemberEntity> memberEntities = projectMemberRepository.findByUserId(userId);
+        
+        List<ProjectWithDetailsDTO> projects = memberEntities.stream()
+                .map(member -> {
+                    try {
+                        ProjectDTO projectDTO = projectServiceClient.getProject(member.getProjectId());
+                        return ProjectWithDetailsDTO.builder()
+                                .projectId(projectDTO.getId())
+                                .tenantId(projectDTO.getTenantId())
+                                .projectName(projectDTO.getName())
+                                .role(member.getRole())
+                                .joinedAt(member.getJoinedAt())
+                                .build();
+                    } catch (Exception e) {
+                        log.warn("Could not fetch project details for {}: {}", member.getProjectId(), e.getMessage());
+                        return ProjectWithDetailsDTO.builder()
+                                .projectId(member.getProjectId())
+                                .tenantId(member.getTenantId())
+                                .projectName("Unknown Project")
+                                .role(member.getRole())
+                                .joinedAt(member.getJoinedAt())
+                                .build();
+                    }
+                })
+                .collect(Collectors.toList());
+        
+        log.debug("Fetched {} projects with details for user {}", projects.size(), userId);
+        return projects;
     }
 
     @Override

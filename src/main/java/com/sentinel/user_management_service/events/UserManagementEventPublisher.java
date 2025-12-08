@@ -19,85 +19,75 @@ public class UserManagementEventPublisher {
 
     private final RabbitTemplate rabbitTemplate;
 
-    @Value("${user_mgmt.events.exchange}")
+    @Value("${spring.rabbitmq.exchange.user-mgmt:user_mgmt_exchange}")
     private String exchange;
 
-    @Value("${user_mgmt.events.user-invited-routing-key}")
+    @Value("${spring.rabbitmq.routing-key.user-invited:user.invited}")
     private String userInvitedKey;
 
-    @Value("${user_mgmt.events.invitation-accepted-routing-key}")
+    @Value("${spring.rabbitmq.routing-key.invitation-accepted:user.invitation.accepted}")
     private String invitationAcceptedKey;
 
-    @Value("${user_mgmt.events.access-revoked-routing-key}")
-    private String accessRevokedKey;
-
+    /**
+     * Publica: user.invited
+     * Consumidor: notification-service (enviar email)
+     */
     public void publishUserInvited(InvitationEntity invitation) {
-        log.info("Publishing user.invited event for: {}", invitation.getEmail());
+        try {
+            Map<String, Object> event = new HashMap<>();
+            event.put("eventId", UUID.randomUUID().toString());
+            event.put("eventType", "user.invited");
+            event.put("timestamp", LocalDateTime.now());
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("invitationId", invitation.getId().toString());
+            data.put("email", invitation.getEmail());
+            data.put("resourceId", invitation.getResourceId().toString());
+            data.put("resourceName", invitation.getResourceName());
+            data.put("resourceType", invitation.getType().name());
+            data.put("inviterEmail", invitation.getInviterEmail());
+            data.put("role", invitation.getRole());
+            data.put("invitationToken", invitation.getToken());
+            data.put("invitationUrl", "http://localhost:3000/invitations/accept?token=" + invitation.getToken());
+            data.put("expiresAt", invitation.getExpiresAt().toString());
+            
+            event.put("data", data);
 
-        Map<String, Object> event = buildBaseEvent("user.invited");
-        
-        Map<String, Object> data = new HashMap<>();
-        data.put("invitationId", invitation.getId().toString());
-        data.put("email", invitation.getEmail());
-        data.put("type", invitation.getType().name());
-        data.put("resourceId", invitation.getResourceId().toString());
-        data.put("resourceName", invitation.getResourceName());
-        data.put("role", invitation.getRole());
-        data.put("invitedBy", invitation.getInvitedBy().toString());
-        data.put("expiresAt", invitation.getExpiresAt().toString());
-        
-        event.put("data", data);
+            rabbitTemplate.convertAndSend(exchange, userInvitedKey, event);
+            log.info("✅ Event published: user.invited for {}", invitation.getEmail());
 
-        rabbitTemplate.convertAndSend(exchange, userInvitedKey, event);
+        } catch (Exception e) {
+            log.error("❌ Failed to publish user.invited event: {}", e.getMessage(), e);
+        }
     }
 
+    /**
+     * Publica: user.invitation.accepted
+     * Consumidor: analytics, audit-log
+     */
     public void publishInvitationAccepted(InvitationEntity invitation, UUID userId) {
-        log.info("Publishing invitation.accepted event for: {}", invitation.getEmail());
+        try {
+            Map<String, Object> event = new HashMap<>();
+            event.put("eventId", UUID.randomUUID().toString());
+            event.put("eventType", "user.invitation.accepted");
+            event.put("timestamp", LocalDateTime.now());
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("invitationId", invitation.getId().toString());
+            data.put("userId", userId.toString());
+            data.put("email", invitation.getEmail());
+            data.put("resourceId", invitation.getResourceId().toString());
+            data.put("resourceType", invitation.getType().name());
+            data.put("role", invitation.getRole());
+            
+            event.put("data", data);
 
-        Map<String, Object> event = buildBaseEvent("user.invitation.accepted");
-        
-        Map<String, Object> data = new HashMap<>();
-        data.put("invitationId", invitation.getId().toString());
-        data.put("userId", userId.toString());
-        data.put("email", invitation.getEmail());
-        data.put("type", invitation.getType().name());
-        data.put("resourceId", invitation.getResourceId().toString());
-        data.put("role", invitation.getRole());
-        
-        event.put("data", data);
+            rabbitTemplate.convertAndSend(exchange, invitationAcceptedKey, event);
+            log.info("✅ Event published: user.invitation.accepted for user {}", userId);
 
-        rabbitTemplate.convertAndSend(exchange, invitationAcceptedKey, event);
-    }
-
-    public void publishAccessRevoked(UUID userId, UUID resourceId, String resourceType) {
-        log.info("Publishing access.revoked event for user: {}", userId);
-
-        Map<String, Object> event = buildBaseEvent("user.access.revoked");
-        
-        Map<String, Object> data = new HashMap<>();
-        data.put("userId", userId.toString());
-        data.put("resourceId", resourceId.toString());
-        data.put("resourceType", resourceType);
-        
-        event.put("data", data);
-
-        rabbitTemplate.convertAndSend(exchange, accessRevokedKey, event);
-    }
-
-    private Map<String, Object> buildBaseEvent(String eventType) {
-        Map<String, Object> event = new HashMap<>();
-        event.put("eventType", eventType);
-        event.put("eventId", UUID.randomUUID().toString());
-        event.put("timestamp", LocalDateTime.now().toString());
-        event.put("version", "1.0");
-        
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("source", "user-management-service");
-        metadata.put("correlationId", UUID.randomUUID().toString());
-        
-        event.put("metadata", metadata);
-        
-        return event;
+        } catch (Exception e) {
+            log.error("❌ Failed to publish invitation.accepted event: {}", e.getMessage(), e);
+        }
     }
 }
 

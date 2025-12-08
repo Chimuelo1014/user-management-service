@@ -1,6 +1,8 @@
 package com.sentinel.user_management_service.service;
 
 import com.sentinel.user_management_service.dto.response.TenantMemberDTO;
+import com.sentinel.user_management_service.dto.response.TenantWithRoleDTO;
+import com.sentinel.user_management_service.client.dto.TenantDTO;
 import com.sentinel.user_management_service.enums.TenantRole;
 
 import java.util.List;
@@ -13,6 +15,8 @@ public interface TenantMemberService {
     List<TenantMemberDTO> getTenantMembers(UUID tenantId);
     
     List<TenantMemberDTO> getUserTenants(UUID userId);
+    
+    List<TenantWithRoleDTO> getUserTenantsWithRole(UUID userId);
     
     TenantMemberDTO getMemberRole(UUID tenantId, UUID userId);
     

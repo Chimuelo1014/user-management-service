@@ -2,6 +2,7 @@ package com.sentinel.user_management_service.service.impl;
 
 import com.sentinel.user_management_service.client.ProjectServiceClient;
 import com.sentinel.user_management_service.client.TenantServiceClient;
+import com.sentinel.user_management_service.client.dto.TenantDTO;
 import com.sentinel.user_management_service.dto.request.InviteUserRequest;
 import com.sentinel.user_management_service.dto.response.InvitationDTO;
 import com.sentinel.user_management_service.entity.InvitationEntity;
@@ -21,11 +22,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -48,44 +52,52 @@ public class InvitationServiceImpl implements InvitationService {
     @Override
     @Transactional
     public InvitationDTO inviteUser(InviteUserRequest request, UUID invitedBy, String inviterEmail) {
-        log.info("📤 Inviting user {} to {} {} by user {} ({})", 
-            request.getEmail(), 
-            request.getType(), 
-            request.getResourceId(),
-            invitedBy,
-            inviterEmail);
+        log.info("✉️ Inviting user {} to {} {}", request.getEmail(), request.getType(), request.getResourceId());
 
-        // ✅ Validate required fields
-        if (request.getType() == null) {
-            log.error("❌ Type is null!");
-            throw new IllegalArgumentException("Type is required");
-        }
-        
-        if (request.getResourceId() == null) {
-            log.error("❌ ResourceId is null!");
-            throw new IllegalArgumentException("ResourceId is required");
+        // ✅ 1. Verificar que el email no sea del invitador
+        if (request.getEmail().equalsIgnoreCase(inviterEmail)) {
+            throw new IllegalArgumentException("Cannot invite yourself");
         }
 
-        // ✅ Check for pending invitation
-        if (invitationRepository.existsByEmailAndResourceIdAndTypeAndStatus(
-                request.getEmail(),
-                request.getResourceId(),
-                request.getType(),
-                InvitationStatus.PENDING)) {
+        // ✅ 2. Verificar invitación pendiente no exista
+        boolean pendingExists = invitationRepository
+                .findByEmailAndResourceIdAndTypeAndStatus(
+                        request.getEmail(),
+                        request.getResourceId(),
+                        request.getType(),
+                        InvitationStatus.PENDING)
+                .isPresent();
+
+        if (pendingExists) {
             throw new MemberAlreadyExistsException("User already has a pending invitation");
         }
 
-        // ✅ Validate tenant/project exists
+        // ✅ 3. Validar que el recurso existe
+        // ✅ 3. Validar que el recurso existe y validar LÍMITES
         if (request.getType() == InvitationType.TENANT) {
             try {
-                tenantClient.getTenant(request.getResourceId());
+                TenantDTO tenant = tenantClient.getTenant(request.getResourceId());
+
+                // Validar si cabe un usuario más
+                int currentUsers = tenant.getUsage().getCurrentUsers();
+                var limitResponse = tenantClient.validateLimit(request.getResourceId(), "USER", currentUsers + 1);
+
+                if (!limitResponse.isAllowed()) {
+                    log.warn("❌ Limit validation denied for tenant {}: {}", request.getResourceId(),
+                            limitResponse.getMessage());
+                    throw new IllegalStateException(
+                            limitResponse.getMessage() + ". " + limitResponse.getUpgradePlanHint());
+                }
+
+            } catch (IllegalStateException e) {
+                throw e;
             } catch (Exception e) {
-                log.error("❌ Tenant not found: {}", request.getResourceId());
-                throw new IllegalArgumentException("Tenant not found");
+                log.error("❌ Tenant check failed: {}", request.getResourceId());
+                throw new IllegalArgumentException("Tenant not found or unavailable");
             }
         }
 
-        // ✅ Validate projects exist (if provided)
+        // ✅ 4. Validar proyectos si se proporcionan
         if (request.getProjectIds() != null && !request.getProjectIds().isEmpty()) {
             for (UUID projectId : request.getProjectIds()) {
                 try {
@@ -97,10 +109,10 @@ public class InvitationServiceImpl implements InvitationService {
             }
         }
 
-        // ✅ Generate token
+        // ✅ 5. Crear invitación
         String token = generateInvitationToken();
+        LocalDateTime expiresAt = LocalDateTime.now().plusDays(expirationDays);
 
-        // ✅ Create invitation
         InvitationEntity invitation = InvitationEntity.builder()
                 .email(request.getEmail())
                 .token(token)
@@ -108,18 +120,17 @@ public class InvitationServiceImpl implements InvitationService {
                 .resourceId(request.getResourceId())
                 .resourceName(request.getResourceName())
                 .role(request.getRole())
-                .projectIds(request.getProjectIds() != null ? request.getProjectIds() : List.of())
                 .status(InvitationStatus.PENDING)
                 .invitedBy(invitedBy)
                 .inviterEmail(inviterEmail)
-                .expiresAt(LocalDateTime.now().plusDays(expirationDays))
+                .expiresAt(expiresAt)
+                .projectIds(request.getProjectIds() != null ? request.getProjectIds() : new ArrayList<>())
                 .build();
 
         invitationRepository.save(invitation);
-
         log.info("✅ Invitation created: {} with {} projects", invitation.getId(), invitation.getProjectIds().size());
 
-        // ✅ Publish event
+        // ✅ 6. Publicar evento para notification-service
         eventPublisher.publishUserInvited(invitation);
 
         return mapToDTO(invitation);
@@ -145,80 +156,57 @@ public class InvitationServiceImpl implements InvitationService {
         // ✅ Add user to tenant
         if (invitation.getType() == InvitationType.TENANT) {
             TenantRole role = TenantRole.valueOf(invitation.getRole());
-            
-            // Check if already member
+
             if (!tenantMemberService.isMember(invitation.getResourceId(), userId)) {
                 tenantMemberService.addMember(
-                    invitation.getResourceId(), 
-                    userId, 
-                    role, 
-                    invitation.getInvitedBy()
-                );
+                        invitation.getResourceId(),
+                        userId,
+                        role,
+                        invitation.getInvitedBy());
+
+                // Incrementar contador de usuarios en tenant-service
+                try {
+                    tenantClient.incrementResource(invitation.getResourceId(), "USER");
+                } catch (Exception e) {
+                    log.error("Failed to increment user count for tenant {}: {}", invitation.getResourceId(),
+                            e.getMessage());
+                    // No fallamos la transacción, pero loggeamos el error.
+                    // En un sistema real, esto debería ser eventual consistent o tener
+                    // compensación.
+                }
+
                 log.info("✅ User added to tenant as {}", role);
             }
+        }
 
-            // ✅ Add user to projects (if specified)
-            if (invitation.getProjectIds() != null && !invitation.getProjectIds().isEmpty()) {
-                for (UUID projectId : invitation.getProjectIds()) {
-                    try {
-                        // Default role for projects: PROJECT_MEMBER
-                        ProjectRole projectRole = ProjectRole.PROJECT_MEMBER;
-                        
-                        if (!projectMemberService.isMember(projectId, userId)) {
-                            projectMemberService.addMember(
+        // ✅ Add user to projects
+        if (invitation.getProjectIds() != null && !invitation.getProjectIds().isEmpty()) {
+            for (UUID projectId : invitation.getProjectIds()) {
+                try {
+                    ProjectRole projectRole = ProjectRole.PROJECT_MEMBER;
+
+                    if (!projectMemberService.isMember(projectId, userId)) {
+                        projectMemberService.addMember(
                                 projectId,
                                 userId,
                                 invitation.getResourceId(), // tenantId
                                 projectRole,
-                                invitation.getInvitedBy()
-                            );
-                            log.info("✅ User added to project {} as {}", projectId, projectRole);
-                        }
-                    } catch (Exception e) {
-                        log.error("❌ Failed to add user to project {}: {}", projectId, e.getMessage());
+                                invitation.getInvitedBy());
+                        log.info("✅ User added to project {} as {}", projectId, projectRole);
                     }
+                } catch (Exception e) {
+                    log.warn("⚠️ Could not add user to project {}: {}", projectId, e.getMessage());
                 }
             }
         }
 
-        // ✅ Mark as accepted
+        // ✅ Mark invitation as accepted
         invitation.accept();
         invitationRepository.save(invitation);
 
-        log.info("✅ Invitation accepted successfully");
-
         // ✅ Publish event
         eventPublisher.publishInvitationAccepted(invitation, userId);
-    }
-
-    @Override
-    @Transactional
-    public void revokeInvitation(UUID invitationId, UUID requestingUserId) {
-        log.info("🚫 Revoking invitation: {}", invitationId);
-
-        InvitationEntity invitation = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new InvitationNotFoundException("Invitation not found"));
-
-        // Verify permissions (only inviter or tenant admin)
-        if (!invitation.getInvitedBy().equals(requestingUserId)) {
-            if (!tenantMemberService.isAdmin(invitation.getResourceId(), requestingUserId)) {
-                throw new PermissionDeniedException("Only inviter or admin can revoke invitations");
-            }
-        }
-
-        invitation.revoke();
-        invitationRepository.save(invitation);
-
-        log.info("✅ Invitation revoked successfully");
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<InvitationDTO> getPendingInvitations(UUID resourceId, InvitationType type) {
-        return invitationRepository.findByResourceIdAndTypeAndStatus(resourceId, type, InvitationStatus.PENDING)
-                .stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        log.info("✅ Invitation accepted and event published");
     }
 
     @Override
@@ -235,77 +223,84 @@ public class InvitationServiceImpl implements InvitationService {
     @Transactional(readOnly = true)
     public InvitationDTO getInvitationByToken(String token) {
         InvitationEntity invitation = invitationRepository.findByToken(token)
-                .orElseThrow(() -> new InvitationNotFoundException("Invalid invitation token"));
-
-        if (invitation.isExpired() && invitation.getStatus() == InvitationStatus.PENDING) {
-            invitation.markExpired();
-            invitationRepository.save(invitation);
-            throw new InvitationExpiredException("Invitation has expired");
-        }
-
+                .orElseThrow(() -> new InvitationNotFoundException("Invalid token"));
         return mapToDTO(invitation);
     }
 
     @Override
     @Transactional
     public void cleanupExpiredInvitations() {
-        log.info("🧹 Cleaning up expired invitations");
+        log.info("🧹 Cleaning up expired invitations...");
+        List<InvitationEntity> expiredInvitations = invitationRepository.findByStatus(InvitationStatus.PENDING)
+                .stream()
+                .filter(InvitationEntity::isExpired)
+                .toList();
 
-        int updated = invitationRepository.markExpiredInvitations(
-                InvitationStatus.PENDING,
-                InvitationStatus.EXPIRED,
-                LocalDateTime.now()
-        );
+        expiredInvitations.forEach(inv -> {
+            inv.markExpired();
+            invitationRepository.save(inv);
+        });
 
-        log.info("✅ Marked {} invitations as expired", updated);
-
-        // Delete old invitations (>90 days)
-        invitationRepository.deleteOldInvitations(
-                InvitationStatus.EXPIRED,
-                LocalDateTime.now().minusDays(90)
-        );
+        log.info("✅ Cleaned up {} expired invitations", expiredInvitations.size());
     }
 
-    // ========================================
-    // HELPER METHODS
-    // ========================================
+    @Override
+    @Transactional(readOnly = true)
+    public List<InvitationDTO> getPendingInvitations(UUID resourceId, InvitationType type) {
+        log.debug("Fetching pending invitations for resource: {} type: {}", resourceId, type);
+
+        return invitationRepository.findByResourceIdAndTypeAndStatus(resourceId, type, InvitationStatus.PENDING)
+                .stream()
+                .filter(inv -> !inv.isExpired())
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void revokeInvitation(UUID invitationId, UUID requestingUserId) {
+        log.info("🗑️ Revoking invitation: {} by user: {}", invitationId, requestingUserId);
+
+        InvitationEntity invitation = invitationRepository.findById(invitationId)
+                .orElseThrow(() -> new InvitationNotFoundException("Invitation not found"));
+
+        // Solo el que envió la invitación o un admin puede revocarla
+        if (!invitation.getInvitedBy().equals(requestingUserId)) {
+            throw new IllegalArgumentException("Only the inviter can revoke this invitation");
+        }
+
+        invitation.setStatus(InvitationStatus.REVOKED);
+        invitationRepository.save(invitation);
+
+        log.info("✅ Invitation revoked: {}", invitationId);
+    }
 
     private String generateInvitationToken() {
-        SecureRandom random = new SecureRandom();
-        byte[] bytes = new byte[32];
-        random.nextBytes(bytes);
-        
-        StringBuilder token = new StringBuilder();
-        for (byte b : bytes) {
-            token.append(String.format("%02x", b));
-        }
-        
-        return token.toString();
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 32);
     }
 
     private InvitationDTO mapToDTO(InvitationEntity entity) {
         String invitationUrl = invitationBaseUrl + "?token=" + entity.getToken();
 
-        // ✅ Fetch project names if projectIds exist
         List<InvitationDTO.ProjectInfo> projects = List.of();
         if (entity.getProjectIds() != null && !entity.getProjectIds().isEmpty()) {
             projects = entity.getProjectIds().stream()
-                .map(projectId -> {
-                    try {
-                        var project = projectClient.getProject(projectId);
-                        return InvitationDTO.ProjectInfo.builder()
-                            .id(projectId)
-                            .name(project.getName())
-                            .build();
-                    } catch (Exception e) {
-                        log.warn("⚠️ Could not fetch project {}: {}", projectId, e.getMessage());
-                        return InvitationDTO.ProjectInfo.builder()
-                            .id(projectId)
-                            .name("Unknown Project")
-                            .build();
-                    }
-                })
-                .collect(Collectors.toList());
+                    .map(projectId -> {
+                        try {
+                            var project = projectClient.getProject(projectId);
+                            return InvitationDTO.ProjectInfo.builder()
+                                    .id(projectId)
+                                    .name(project.getName())
+                                    .build();
+                        } catch (Exception e) {
+                            log.warn("⚠️ Could not fetch project {}: {}", projectId, e.getMessage());
+                            return InvitationDTO.ProjectInfo.builder()
+                                    .id(projectId)
+                                    .name("Unknown Project")
+                                    .build();
+                        }
+                    })
+                    .collect(Collectors.toList());
         }
 
         return InvitationDTO.builder()

@@ -1,6 +1,7 @@
 package com.sentinel.user_management_service.service.impl;
 
 import com.sentinel.user_management_service.dto.response.TenantMemberDTO;
+import com.sentinel.user_management_service.dto.response.TenantWithRoleDTO;
 import com.sentinel.user_management_service.entity.TenantMemberEntity;
 import com.sentinel.user_management_service.enums.TenantRole;
 import com.sentinel.user_management_service.exception.MemberAlreadyExistsException;
@@ -8,6 +9,8 @@ import com.sentinel.user_management_service.exception.MemberNotFoundException;
 import com.sentinel.user_management_service.exception.PermissionDeniedException;
 import com.sentinel.user_management_service.repository.TenantMemberRepository;
 import com.sentinel.user_management_service.service.TenantMemberService;
+import com.sentinel.user_management_service.client.TenantServiceClient;
+import com.sentinel.user_management_service.client.dto.TenantDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 public class TenantMemberServiceImpl implements TenantMemberService {
 
     private final TenantMemberRepository tenantMemberRepository;
+    private final TenantServiceClient tenantServiceClient;
 
     @Override
     @Transactional
@@ -65,6 +69,41 @@ public class TenantMemberServiceImpl implements TenantMemberService {
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TenantWithRoleDTO> getUserTenantsWithRole(UUID userId) {
+        log.debug("Fetching tenants with role for user: {}", userId);
+        
+        List<TenantMemberEntity> memberEntities = tenantMemberRepository.findByUserId(userId);
+        
+        List<TenantWithRoleDTO> tenants = memberEntities.stream()
+                .map(member -> {
+                    try {
+                        TenantDTO tenantDTO = tenantServiceClient.getTenant(member.getTenantId());
+                        return TenantWithRoleDTO.builder()
+                                .tenantId(tenantDTO.getId())
+                                .tenantName(tenantDTO.getName())
+                                .plan(tenantDTO.getPlan())
+                                .role(member.getRole())
+                                .joinedAt(member.getJoinedAt())
+                                .build();
+                    } catch (Exception e) {
+                        log.warn("Could not fetch tenant details for {}: {}", member.getTenantId(), e.getMessage());
+                        return TenantWithRoleDTO.builder()
+                                .tenantId(member.getTenantId())
+                                .tenantName("Unknown Tenant")
+                                .plan("UNKNOWN")
+                                .role(member.getRole())
+                                .joinedAt(member.getJoinedAt())
+                                .build();
+                    }
+                })
+                .collect(Collectors.toList());
+        
+        log.debug("Fetched {} tenants with role for user {}", tenants.size(), userId);
+        return tenants;
     }
 
     @Override

@@ -12,8 +12,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    @Value("${user_mgmt.events.exchange}")
+    @Value("${spring.rabbitmq.exchange.user-mgmt:user_mgmt_exchange}")
     private String userMgmtExchange;
+
+    @Value("${spring.rabbitmq.exchange.auth:auth_exchange}")
+    private String authExchange;
+
+    // ========================================
+    // EXCHANGES
+    // ========================================
 
     @Bean
     public TopicExchange userMgmtExchange() {
@@ -21,54 +28,70 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue userInvitedQueue() {
-        return new Queue("user_mgmt.user.invited.queue", true);
+    public TopicExchange authExchange() {
+        return new TopicExchange(authExchange, true, false);
     }
 
-    @Bean
-    public Queue invitationAcceptedQueue() {
-        return new Queue("user_mgmt.invitation.accepted.queue", true);
-    }
+    // ========================================
+    // QUEUES (Para consumir)
+    // ========================================
 
     @Bean
-    public Queue accessRevokedQueue() {
-        return new Queue("user_mgmt.access.revoked.queue", true);
+    public Queue userRegisteredQueue() {
+        return QueueBuilder
+                .durable("user_mgmt.user.registered.queue")
+                .build();
     }
 
+    // ========================================
+    // BINDINGS (Para consumir)
+    // ========================================
+
     @Bean
-    public Binding userInvitedBinding() {
+    public Binding userRegisteredBinding() {
         return BindingBuilder
-                .bind(userInvitedQueue())
-                .to(userMgmtExchange())
-                .with("user.invited");
+                .bind(userRegisteredQueue())
+                .to(authExchange())
+                .with("auth.user.registered");
+    }
+
+    // ========================================
+    // Billing Integration
+    // ========================================
+
+    @Bean
+    public TopicExchange billingExchange() {
+        return new TopicExchange("sentinel-billing-exchange", true, false);
     }
 
     @Bean
-    public Binding invitationAcceptedBinding() {
-        return BindingBuilder
-                .bind(invitationAcceptedQueue())
-                .to(userMgmtExchange())
-                .with("user.invitation.accepted");
+    public Queue billingSubscriptionQueue() {
+        return QueueBuilder.durable("user_mgmt.billing.subscription.queue").build();
     }
 
     @Bean
-    public Binding accessRevokedBinding() {
+    public Binding billingSubscriptionBinding() {
         return BindingBuilder
-                .bind(accessRevokedQueue())
-                .to(userMgmtExchange())
-                .with("user.access.revoked");
+                .bind(billingSubscriptionQueue())
+                .to(billingExchange())
+                .with("billing.subscription.created");
     }
 
     @Bean
     public MessageConverter messageConverter() {
-        return new Jackson2JsonMessageConverter();
+        Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter();
+        // Crucial: Create a DefaultClassMapper and set TrustedPackages to "*" to avoid
+        // security restrictions on deserialization
+        org.springframework.amqp.support.converter.DefaultClassMapper classMapper = new org.springframework.amqp.support.converter.DefaultClassMapper();
+        classMapper.setTrustedPackages("*"); // Trust everything (safe for internal microservices)
+        converter.setClassMapper(classMapper);
+        return converter;
     }
 
     @Bean
     public RabbitTemplate rabbitTemplate(
             ConnectionFactory connectionFactory,
-            MessageConverter messageConverter
-    ) {
+            MessageConverter messageConverter) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(messageConverter);
         return template;

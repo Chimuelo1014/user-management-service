@@ -1,6 +1,8 @@
 package com.sentinel.user_management_service.service;
 
 import com.sentinel.user_management_service.dto.response.ProjectMemberDTO;
+import com.sentinel.user_management_service.dto.response.ProjectWithDetailsDTO;
+import com.sentinel.user_management_service.client.dto.ProjectDTO;
 import com.sentinel.user_management_service.enums.ProjectRole;
 
 import java.util.List;
@@ -13,6 +15,8 @@ public interface ProjectMemberService {
     List<ProjectMemberDTO> getProjectMembers(UUID projectId);
     
     List<ProjectMemberDTO> getUserProjects(UUID userId);
+    
+    List<ProjectWithDetailsDTO> getUserProjectsWithDetails(UUID userId);
     
     ProjectMemberDTO getMemberRole(UUID projectId, UUID userId);
     

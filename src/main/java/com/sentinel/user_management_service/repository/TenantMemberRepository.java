@@ -30,6 +30,9 @@ public interface TenantMemberRepository extends JpaRepository<TenantMemberEntity
     @Query("SELECT COUNT(m) FROM TenantMemberEntity m WHERE m.tenantId = :tenantId AND m.role = :role")
     long countByTenantIdAndRole(@Param("tenantId") UUID tenantId, @Param("role") TenantRole role);
 
+    @Query("SELECT COUNT(DISTINCT m.tenantId) FROM TenantMemberEntity m WHERE m.userId = :userId")
+    long countDistinctTenantsByUserId(@Param("userId") UUID userId);
+
     void deleteByTenantIdAndUserId(UUID tenantId, UUID userId);
 }
 

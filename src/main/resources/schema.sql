@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS invitation_projects CASCADE;
 DROP TABLE IF EXISTS project_members CASCADE;
 DROP TABLE IF EXISTS tenant_members CASCADE;
 DROP TABLE IF EXISTS invitations CASCADE;
+DROP TABLE IF EXISTS user_plans CASCADE;
 
 -- ===================================
 -- TENANT_MEMBERS
@@ -60,6 +61,8 @@ CREATE TABLE invitations (
     expires_at TIMESTAMP NOT NULL,
     accepted_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    sent_at TIMESTAMP,
+    notification_id VARCHAR(255),
     
     CONSTRAINT chk_invitation_type CHECK (type IN ('TENANT', 'PROJECT')),
     CONSTRAINT chk_invitation_status CHECK (status IN ('PENDING', 'ACCEPTED', 'EXPIRED', 'REVOKED'))
@@ -74,6 +77,23 @@ CREATE TABLE invitation_projects (
     
     CONSTRAINT fk_invitation FOREIGN KEY (invitation_id) REFERENCES invitations(id) ON DELETE CASCADE,
     CONSTRAINT uq_invitation_project UNIQUE (invitation_id, project_id)
+);
+
+-- ===================================
+-- USER_PLANS (NEW)
+-- ===================================
+CREATE TABLE user_plans (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL UNIQUE,
+    plan VARCHAR(50) NOT NULL DEFAULT 'FREE', -- FREE, PRO, ENTERPRISE
+    max_tenants INT NOT NULL DEFAULT 3,
+    max_projects_per_tenant INT NOT NULL DEFAULT 5,
+    max_users_per_tenant INT NOT NULL DEFAULT 10,
+    max_scans_per_month INT NOT NULL DEFAULT 100,
+    assigned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT chk_plan CHECK (plan IN ('FREE', 'PRO', 'ENTERPRISE'))
 );
 
 -- ===================================
@@ -103,6 +123,10 @@ CREATE INDEX idx_invitations_expires_at ON invitations(expires_at);
 CREATE INDEX idx_invitation_projects_invitation_id ON invitation_projects(invitation_id);
 CREATE INDEX idx_invitation_projects_project_id ON invitation_projects(project_id);
 
+-- User plans
+CREATE INDEX idx_user_plans_user_id ON user_plans(user_id);
+CREATE INDEX idx_user_plans_plan ON user_plans(plan);
+
 -- ===================================
 -- FUNCTIONS & TRIGGERS
 -- ===================================
@@ -131,3 +155,15 @@ CREATE TRIGGER update_project_members_updated_at
 BEFORE UPDATE ON project_members
 FOR EACH ROW 
 EXECUTE FUNCTION update_updated_at_column();
+
+-- ===================================
+-- TENANTS (Remove plan column)
+-- ===================================
+-- Modificar tabla existente
+ALTER TABLE tenants DROP COLUMN IF EXISTS plan;
+ALTER TABLE tenants DROP COLUMN IF EXISTS max_users;
+ALTER TABLE tenants DROP COLUMN IF EXISTS max_projects;
+
+-- Agregar columna de owner
+ALTER TABLE tenants ADD COLUMN owner_id UUID NOT NULL;
+ALTER TABLE tenants ADD CONSTRAINT fk_tenant_owner FOREIGN KEY (owner_id) REFERENCES users(id);
